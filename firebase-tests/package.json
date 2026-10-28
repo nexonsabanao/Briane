@@ -1,0 +1,14 @@
+{
+  "name": "briane-rules-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "@firebase/rules-unit-testing suite for the locked-down BRIANE rules",
+  "type": "module",
+  "scripts": {
+    "test": "firebase emulators:exec --only firestore \"node --test rules.test.mjs\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^3.0.3",
+    "firebase": "^10.0.0"
+  }
+}

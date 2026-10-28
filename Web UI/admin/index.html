@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login | BRIANE</title>
+    <script>
+        // Apply persisted dark-weather theme to <html> BEFORE first paint so
+        // the splash screen never flashes white in night/stormy/rainy mode.
+        // body isn't parsed yet — use documentElement; background-manager.js
+        // keeps both elements in sync afterwards.
+        (function () {
+            try {
+                var raw = localStorage.getItem('briane_last_weather');
+                var dark = false;
+                if (raw) {
+                    var parsed = JSON.parse(raw);
+                    dark = !!parsed && ['night', 'stormy', 'rainy'].indexOf(parsed.type) !== -1;
+                }
+                if (dark) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                }
+            } catch (e) {}
+        })();
+    </script>
+    <link rel="icon" type="image/png" sizes="48x48" href="../assets/favicon-48.png">
+    <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2c5f97">
+    <meta name="description" content="BRIANE admin console — authorized access only.">
+<meta name="robots" content="noindex">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="BRIANE Admin">
+    <link rel="apple-touch-icon" href="../assets/icon-192.png">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../auth/auth.css">
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="../background/weather-backgrounds.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="https://unpkg.com/lucide@1.43.0"></script>
+    <script src="../background/background-manager.js"></script>
+    <script src="../firebase-config.js"></script>
+</head>
+<body class="auth-page">
+    <!-- Background Container -->
+    <div class="weather-bg-container"></div>
+    <div class="auth-wrapper">
+        <div class="auth-card admin-card">
+            <div class="auth-logo">
+                <div class="brand-logo admin">
+                    <img src="../assets/icon.png" alt="Logo">
+                </div>
+            </div>
+            <h1>Admin Console</h1>
+            <p>Authorized administrator access only.</p>
+
+            <div id="error-msg" class="error-banner" style="display: none;"></div>
+
+            <form id="admin-login-form">
+                <div class="input-group">
+                    <label for="admin-email">Admin Email</label>
+                    <input type="email" id="admin-email" class="input-control" placeholder="admin@briane.com" required autofocus>
+                </div>
+
+                <div class="input-group">
+                    <label for="admin-password">Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="admin-password" class="input-control has-toggle" placeholder="••••••••" required>
+                        <button type="button" class="toggle-password" data-target="admin-password" aria-label="Toggle password visibility">
+                            <i data-lucide="eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" id="admin-login-btn" class="btn-submit admin">
+                    <span class="btn-text">Authorize Access</span>
+                    <div class="loader"></div>
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <a href="../index.html">← Return to Public Portal</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin-login.js"></script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | BRIANE</title>
+    <script>
+        // Apply persisted dark-weather theme to <html> BEFORE first paint so
+        // the splash screen never flashes white in night/stormy/rainy mode.
+        // body isn't parsed yet — use documentElement; background-manager.js
+        // keeps both elements in sync afterwards.
+        (function () {
+            try {
+                var raw = localStorage.getItem('briane_last_weather');
+                var dark = false;
+                if (raw) {
+                    var parsed = JSON.parse(raw);
+                    dark = !!parsed && ['night', 'stormy', 'rainy'].indexOf(parsed.type) !== -1;
+                }
+                if (dark) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                }
+            } catch (e) {}
+        })();
+    </script>
+    <link rel="icon" type="image/png" sizes="48x48" href="assets/favicon-48.png">
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2c5f97">
+    <meta name="description" content="BRIANE — Barangay flood early warning system. Sign in to view live rainfall and flood-risk alerts.">
+<meta property="og:title" content="BRIANE — Flood Alert Network">
+<meta property="og:description" content="Live rainfall, river level, and flood risk monitoring for your barangay.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://weather-project-a5fb5.web.app/assets/icon-512.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="BRIANE">
+    <link rel="apple-touch-icon" href="assets/icon-192.png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="auth/auth.css">
+    <link rel="stylesheet" href="background/weather-backgrounds.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@1.43.0"></script>
+    <script src="background/background-manager.js"></script>
+    <script src="firebase-config.js"></script>
+</head>
+<body class="auth-page">
+    <!-- Background Container -->
+    <div class="weather-bg-container"></div>
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <div class="brand-logo">
+                    <img src="assets/icon.png" alt="Logo">
+                </div>
+            </div>
+
+            <div id="error-msg" class="error-banner" style="display: none;"></div>
+
+            <form id="login-form">
+                <div id="login-view">
+                    <h1>Welcome back</h1>
+                    <p>Sign in to stay informed about flood risks in your area.</p>
+
+                    <div class="input-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" class="input-control" placeholder="name@example.com" required autofocus>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="password">Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="password" class="input-control has-toggle" placeholder="••••••••" required>
+                            <button type="button" class="toggle-password" data-target="password" aria-label="Toggle password visibility">
+                                <i data-lucide="eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="auth-footer auth-footer-end">
+                        <a href="#" id="forgot-password-link">Forgot Password?</a>
+                    </div>
+
+                    <button type="submit" id="auth-btn" class="btn-submit">
+                        <span class="btn-text">Sign In</span>
+                        <div class="loader"></div>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Forgot Password View (Hidden) -->
+            <div id="forgot-view" style="display: none;">
+                <h1>Reset Password</h1>
+                <p>Enter your registered email address.</p>
+
+                <div class="input-group">
+                    <label for="reset-id">Email or Phone Number</label>
+                    <input type="text" id="reset-id" class="input-control" placeholder="name@example.com or +63...">
+                </div>
+
+                <button id="reset-btn" class="btn-submit">
+                    <span class="btn-text">Send Reset Link</span>
+                    <div class="loader"></div>
+                </button>
+
+                <div class="auth-footer">
+                    <a href="#" id="back-to-login">Back to Login</a>
+                </div>
+            </div>
+
+            <div class="auth-footer">
+                Don't have an account? <a href="auth/register.html">Create one now</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

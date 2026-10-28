@@ -1,0 +1,4401 @@
+/* --- BRIANE Admin: Refined Glass ---
+   Design tokens are defined once in ../style.css (single source of truth). */
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body.admin-dashboard {
+    background: transparent !important;
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-body);
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+}
+
+.app-layout {
+    display: flex;
+    height: 100vh;
+    height: 100dvh;
+    width: 100vw;
+}
+
+/* --- Sidebar (Desktop) --- */
+.desktop-sidebar {
+    width: 260px;
+    background: var(--stone-800);
+    backdrop-filter: var(--glass-blur-2);
+    -webkit-backdrop-filter: var(--glass-blur-2);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem 1.25rem;
+    flex-shrink: 0;
+    border-right: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 3rem;
+}
+
+.logo-box {
+    width: 36px;
+    height: 36px;
+    background: var(--brand-gradient);
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 14px -4px rgba(21, 94, 117, 0.5);
+    flex-shrink: 0;
+}
+
+.logo-box img { width: 24px; height: 24px; object-fit: contain; }
+
+.app-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.sidebar-nav {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0.8rem 1rem;
+    color: var(--stone-400);
+    text-decoration: none;
+    border-radius: 9px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.nav-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--stone-200);
+}
+
+.nav-item.active {
+    background: var(--brand-gradient);
+    color: white;
+    box-shadow: 0 8px 18px -6px rgba(21, 94, 117, 0.55);
+}
+
+/* Sidebar footer: pins Sign Out (and PWA install) to the bottom of the
+   sidebar on desktop, with consistent padding and separation from nav */
+.sidebar-footer-actions {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.09);
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.logout-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.8rem 1rem;
+    color: var(--stone-300);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    font-weight: 700;
+    font-family: inherit;
+    font-size: inherit;
+    border-radius: 9px;
+    transition: all 0.2s;
+}
+
+.logout-link svg,
+.logout-link i {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+/* Red is reserved for emergency states — sign-out stays neutral */
+.logout-link:hover {
+    color: var(--white);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* --- Content View --- */
+.content-view {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    background: transparent !important;
+    min-width: 0;
+}
+
+.view-header {
+    display: none; /* Hidden on PC view */
+    height: 70px;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    padding: 0 1.5rem;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    z-index: 100;
+    flex-shrink: 0;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.mobile-logo-box {
+    width: 32px;
+    height: 32px;
+    background: var(--brand-gradient);
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+
+.mobile-logo-box img { width: 20px; height: 20px; object-fit: contain; }
+
+.mobile-brand {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--stone-900);
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.welcome-section {
+    margin-bottom: 1.5rem;
+}
+
+.welcome-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.welcome-section h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--stone-900);
+    margin: 0;
+}
+
+.desktop-status {
+    display: flex;
+    flex-shrink: 0;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+
+
+/* Mobile hamburger (3-line) menu trigger — opens the nav dropdown */
+.mobile-menu-btn {
+    display: none;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: var(--glass-blur-1);
+    -webkit-backdrop-filter: var(--glass-blur-1);
+    color: var(--ink-500);
+    border: 1px solid rgba(28, 25, 23, 0.12);
+    border-radius: 9px;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    box-shadow: var(--shadow-xs);
+}
+
+/* Red is reserved for emergency states — the menu trigger stays neutral */
+.mobile-menu-btn:hover {
+    background: rgba(28, 25, 23, 0.06);
+    border-color: rgba(28, 25, 23, 0.2);
+    color: var(--ink-700);
+}
+
+.user-welcome {
+    font-size: 0.875rem;
+    color: var(--stone-600);
+}
+
+/* --- Scroll Area --- */
+.scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2rem 2.5rem;
+    background: transparent !important;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.scroll-area::-webkit-scrollbar {
+    display: none;
+}
+
+.view-section {
+    display: none;
+}
+
+.view-section.active {
+    display: block;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes loading {
+    0% { left: -40%; }
+    50% { left: 100%; }
+    100% { left: -40%; }
+}
+
+.loader-inner {
+    animation: loading 1.5s infinite ease-in-out !important;
+}
+
+/* --- Analytics Header --- */
+.analytics-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.analytics-header h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--stone-900);
+    margin: 0;
+}
+
+.analytics-header p {
+    color: var(--stone-500);
+    margin: 4px 0 0;
+}
+
+.analytics-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+#admin-export-report-btn {
+    background: var(--primary-dark);
+    box-shadow: var(--shadow-sm);
+}
+
+.csv-export-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.65rem 1.15rem;
+    background: #059669;
+    color: white;
+    border: none;
+    border-radius: 9px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s, box-shadow 0.2s;
+    font-family: inherit;
+}
+
+.csv-export-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.csv-export-btn:active {
+    transform: scale(0.98);
+}
+
+.csv-export-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+[data-theme="dark"] .analytics-header h2 {
+    color: var(--stone-50);
+}
+
+[data-theme="dark"] .analytics-header p {
+    color: var(--stone-300);
+}
+
+/* --- Modern Time Range Selector --- */
+.time-range-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background: var(--glass-2);
+    backdrop-filter: var(--glass-blur-2);
+    -webkit-backdrop-filter: var(--glass-blur-2);
+    border: 1px solid var(--hairline);
+    box-shadow: var(--shadow-xs);
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--r-lg);
+    margin-bottom: 1.5rem;
+}
+
+.time-range-pills {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.range-pill {
+    padding: 0.45rem 1rem;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    background: rgba(255, 255, 255, 0.8);
+    color: var(--stone-600);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.range-pill:hover {
+    background: var(--stone-100);
+    color: var(--stone-900);
+}
+
+.range-pill.active {
+    background: var(--brand-gradient);
+    color: var(--white);
+    border-color: transparent;
+    box-shadow: 0 6px 14px -4px rgba(21, 94, 117, 0.5);
+}
+
+.time-range-custom {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.custom-date-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--stone-500);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.range-date-input {
+    padding: 0.35rem 0.75rem;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: var(--white);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--stone-800);
+    outline: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.2s ease;
+}
+
+.range-date-input:focus {
+    border-color: var(--cyan-900);
+    box-shadow: 0 0 0 3px rgba(21, 94, 117, 0.15);
+}
+
+/* ══════════════════════════════════════════════════
+   TIER 1: ADMIN HERO FLOOD & TELEMETRY BANNER
+   ══════════════════════════════════════════════════ */
+.hero-flood-banner {
+    background: var(--glass-3);
+    backdrop-filter: var(--glass-blur-3);
+    -webkit-backdrop-filter: var(--glass-blur-3);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-xl);
+    padding: 1.75rem 2rem;
+    box-shadow: var(--shadow-md);
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-banner-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.hero-user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.hero-greeting-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.hero-greeting-row h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--stone-900);
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+.hero-badge {
+    font-size: 0.75rem !important;
+    padding: 4px 12px !important;
+    border-radius: 100px !important;
+    margin-top: 0 !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px;
+}
+
+.hero-status-subtitle {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--stone-600);
+    margin: 0;
+}
+
+.hero-time-text {
+    font-size: 0.8rem;
+    color: var(--stone-500);
+    margin: 0;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+}
+
+.hero-status-right {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* Dual Core Telemetry Grid */
+.hero-telemetry-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+}
+
+.hero-metric-box {
+    background: rgba(255, 255, 255, 0.68);
+    backdrop-filter: var(--glass-blur-1);
+    -webkit-backdrop-filter: var(--glass-blur-1);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-lg);
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    box-shadow: var(--shadow-xs);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.hero-metric-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.08);
+}
+
+.hero-metric-box.water-focus {
+    border-left: 4px solid var(--teal-600);
+}
+
+.hero-metric-box.rain-focus {
+    border-left: 4px solid var(--primary);
+}
+
+.hero-box-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.hero-icon-pill {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.hero-icon-pill.teal {
+    background: rgba(13, 148, 136, 0.12);
+    color: var(--teal-600);
+}
+
+.hero-icon-pill.blue {
+    background: rgba(44, 95, 151, 0.12);
+    color: var(--primary);
+}
+
+.hero-box-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--stone-600);
+}
+
+.hero-box-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.hero-main-number {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.hero-value {
+    font-size: 2.7rem;
+    font-weight: 700;
+    color: var(--stone-900);
+    line-height: 1;
+    letter-spacing: -1px;
+}
+
+.hero-unit {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--stone-500);
+}
+
+.hero-sub-metric {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--stone-500);
+    margin-top: 2px;
+}
+
+.hero-sub-metric .sub-val {
+    color: var(--stone-900);
+    font-weight: 700;
+}
+
+.hero-sub-metric .sub-sep {
+    color: var(--stone-300);
+}
+
+.hero-sub-metric .badge-sm {
+    font-size: 0.65rem;
+    padding: 2px 8px;
+}
+
+/* Hero Footer */
+.hero-banner-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.hero-location-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--stone-600);
+    min-width: 0;
+}
+
+.hero-location-info .loc-icon {
+    width: 16px;
+    height: 16px;
+    color: #f43f5e;
+    flex-shrink: 0;
+}
+
+.hero-location-info .loc-label {
+    font-weight: 600;
+    color: var(--stone-500);
+}
+
+.hero-location-info .loc-name {
+    font-weight: 700;
+    color: var(--stone-900);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.hero-map-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 14px;
+    border-radius: 10px;
+    background: rgba(21, 94, 117, 0.08);
+    color: var(--cyan-900);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.hero-map-btn:hover {
+    background: var(--cyan-900);
+    color: var(--white);
+    box-shadow: 0 4px 12px rgba(21, 94, 117, 0.25);
+}
+
+.hero-map-btn i {
+    width: 14px;
+    height: 14px;
+}
+
+/* ══════════════════════════════════════════════════
+   TIER 2: COMPACT 6-METRIC OPS STRIP
+   ══════════════════════════════════════════════════ */
+.weather-strip-container {
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.weather-strip-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.85rem;
+}
+
+@media (max-width: 1300px) {
+    .weather-strip-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .weather-strip-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .weather-strip-grid {
+        /* Two sensor chips per row on phones — compact 2-up grid. */
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.6rem;
+    }
+}
+
+.weather-chip {
+    background: var(--glass-1);
+    backdrop-filter: var(--glass-blur-1);
+    -webkit-backdrop-filter: var(--glass-blur-1);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-lg);
+    padding: 0.9rem 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    box-shadow: var(--shadow-xs);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    min-width: 0;
+}
+
+.weather-chip:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px -2px rgba(0, 0, 0, 0.06);
+}
+
+.chip-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.chip-icon.orange { background: rgba(249, 115, 22, 0.12); color: var(--orange-500); }
+.chip-icon.cyan { background: rgba(59, 130, 246, 0.12); color: var(--sky-400); }
+.chip-icon.purple { background: rgba(37, 99, 235, 0.10); color: #2563eb; } /* .purple name kept as JS hook — renders blue */
+.chip-icon.yellow { background: rgba(234, 179, 8, 0.12); color: #eab308; }
+.chip-icon.green { background: rgba(16, 185, 129, 0.12); color: var(--emerald-500); }
+.chip-icon.indigo { background: rgba(44, 95, 151, 0.12); color: var(--primary); }
+
+.chip-data {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 2px;
+}
+
+.chip-data label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--stone-500);
+    white-space: nowrap;
+}
+
+.chip-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--stone-900);
+    line-height: 1.1;
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+}
+
+.chip-value small {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--stone-500);
+}
+
+/* Show/Hide Toggle Button */
+.toggle-sensors-wrapper {
+    display: flex;
+    justify-content: center;
+    margin: 0.25rem 0;
+}
+
+.toggle-sensors-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.55rem 1.25rem;
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--hairline);
+    border-radius: 100px;
+    color: var(--cyan-900);
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: inherit;
+}
+
+.toggle-sensors-btn:hover {
+    background: var(--cyan-900);
+    color: var(--white);
+    border-color: var(--cyan-900);
+    box-shadow: 0 6px 18px rgba(21, 94, 117, 0.3);
+    transform: translateY(-1px);
+}
+
+.toggle-sensors-btn:active {
+    transform: scale(0.97);
+}
+
+.toggle-sensors-btn i {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s ease;
+}
+
+/* Collapsible Secondary Metrics Drawer */
+.more-sensors-drawer {
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease;
+}
+
+.more-sensors-drawer.collapsed {
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.more-sensors-drawer.expanded {
+    max-height: 500px;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.more-sensors-inner {
+    padding-top: 0.5rem;
+}
+
+.compact-subgrid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    margin-bottom: 0.5rem !important;
+}
+
+/* --- Admin Card Designs (Matching Dashboard) --- */
+.stats-grid-modern {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+
+
+.metric-card-glass {
+    background: var(--glass-2);
+    backdrop-filter: var(--glass-blur-2);
+    -webkit-backdrop-filter: var(--glass-blur-2);
+    border-radius: var(--r-lg);
+    padding: 1.25rem;
+    border: 1px solid var(--hairline);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.3s var(--ease-glass), box-shadow 0.3s ease;
+    min-width: 0;
+}
+
+.metric-card-glass:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(44, 95, 151, 0.35);
+}
+
+.metric-icon-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.metric-icon-box.blue { background: rgba(44, 95, 151, 0.12); color: var(--primary); }
+.metric-icon-box.amber { background: rgba(245, 158, 11, 0.12); color: var(--amber-500); }
+.metric-icon-box.rose { background: rgba(244, 63, 94, 0.12); color: #f43f5e; }
+.metric-icon-box.orange { background: rgba(249, 115, 22, 0.12); color: var(--orange-500); }
+.metric-icon-box.cyan { background: rgba(59, 130, 246, 0.12); color: var(--sky-400); }
+.metric-icon-box.purple { background: rgba(37, 99, 235, 0.10); color: #2563eb; } /* same as above */
+.metric-icon-box.green { background: rgba(16, 185, 129, 0.12); color: var(--emerald-500); }
+.metric-icon-box.yellow { background: rgba(234, 179, 8, 0.12); color: #eab308; }
+.metric-icon-box.teal { background: rgba(13, 148, 136, 0.12); color: var(--teal-600); }
+
+.metric-info {
+    min-width: 0;
+}
+
+.metric-info label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--stone-600);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.metric-info h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--stone-800);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.metric-info small { font-size: 0.8rem; color: var(--stone-500); font-weight: 600; margin-left: 2px; }
+
+/* --- Overview Grid --- */
+.main-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+@media (min-width: 769px) {
+    .main-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.glass-card {
+    background: var(--glass-2);
+    backdrop-filter: var(--glass-blur-2);
+    -webkit-backdrop-filter: var(--glass-blur-2);
+    border-radius: var(--r-xl);
+    padding: 1.5rem;
+    border: 1px solid var(--hairline);
+    box-shadow: var(--shadow-sm);
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s var(--ease-glass), box-shadow 0.3s ease;
+}
+
+.glass-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.card-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1.5rem;
+}
+
+.card-head h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--stone-900);
+    margin: 0;
+}
+
+.card-head svg { color: var(--primary); width: 20px; flex-shrink: 0; }
+.card-head.between { justify-content: space-between; }
+.flex-align { display: flex; align-items: center; gap: 10px; }
+
+/* Prediction Panel Admin Styling */
+.prediction-panel {
+    background: rgba(44, 95, 151, 0.10) !important;
+}
+
+/* ── Sensor factor breakdown (mirrors the user dashboard) ── */
+.prediction-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+}
+
+.breakdown-label {
+    color: var(--stone-600);
+    font-weight: 600;
+}
+
+.breakdown-value {
+    font-weight: 700;
+    color: var(--stone-900);
+}
+
+/* Dark weather: white text on the dark prediction card */
+[data-theme="dark"] .breakdown-label {
+    color: rgba(255, 255, 255, 0.55);
+}
+
+[data-theme="dark"] .breakdown-value {
+    color: var(--white);
+}
+
+[data-theme="dark"] .prediction-breakdown {
+    border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+.outlook-main {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.prediction-icon {
+    width: 60px;
+    height: 60px;
+    background: white;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    flex-shrink: 0;
+}
+
+.outlook-info {
+    min-width: 0;
+}
+
+.outlook-info h4 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--stone-800);
+}
+
+.outlook-info p {
+    margin: 4px 0 0;
+    font-size: 0.85rem;
+    color: var(--stone-500);
+    line-height: 1.4;
+}
+
+.probability-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.prob-item label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--stone-600);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+.progress-bg {
+    height: 8px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 100px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 100px;
+    transition: width 1s ease-in-out;
+}
+
+.progress-fill.blue { background: var(--primary); }
+.progress-fill.teal { background: var(--primary); }
+.progress-fill.red { background: var(--red-500); }
+.progress-fill.safe { background: var(--success); }
+.progress-fill.warning { background: var(--warning); }
+.progress-fill.danger { background: var(--red-500); }
+.progress-fill { transition: width 0.5s ease, background 0.4s ease; }
+
+/* Station location name is clickable (opens Google Maps at the coordinates) */
+.loc-name.loc-clickable { cursor: pointer; color: inherit; text-decoration: none; }
+.loc-name.loc-clickable:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* --- Detailed Charts --- */
+.detailed-charts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.chart-panel-large {
+    padding: 1.5rem 1.75rem;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 10px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.chart-panel-large:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.08);
+}
+
+.chart-container-large, .chart-container-medium {
+    width: 100% !important;
+    height: 270px;
+    position: relative !important;
+}
+
+.chart-container-large canvas, .chart-container-medium canvas {
+    max-width: 100% !important;
+    display: block;
+}
+
+@media (max-width: 1024px) {
+    .detailed-charts-grid {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+    .chart-container-large, .chart-container-medium {
+        height: 240px;
+    }
+}
+
+/* --- Forms & Controls --- */
+.form-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--stone-600);
+    margin-bottom: 0.75rem;
+}
+
+.input-wrapper {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: stretch;
+}
+
+.input-wrapper input, .form-group textarea {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--hairline);
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: var(--stone-900);
+    font-family: inherit;
+    font-size: 16px; /* Prevents iOS zoom */
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    resize: none;
+}
+
+.input-wrapper input {
+    flex: 3;
+    min-width: 160px;
+}
+
+.input-wrapper .btn-glow {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 100px;
+    padding: 0.75rem 1rem;
+}
+
+.form-group textarea {
+    width: 100%;
+    min-height: 200px;
+    line-height: 1.6;
+}
+
+
+.input-wrapper input::placeholder, textarea::placeholder {
+    color: var(--stone-500);
+    opacity: 0.7;
+}
+
+textarea { min-height: 200px; line-height: 1.6; width: 100%; }
+
+.input-wrapper input:focus, textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 0 4px rgba(44, 95, 151, 0.15), 0 8px 16px rgba(0, 0, 0, 0.05);
+}
+
+.btn-glow {
+    background: var(--primary-dark);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 9px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    min-height: 48px; /* Touch target */
+}
+
+.btn-glow:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(44, 95, 151, 0.3);
+}
+
+.btn-glow:active {
+    transform: translateY(0);
+}
+
+.metric-icon-box.indigo { background: rgba(44, 95, 151, 0.12); color: var(--sky-400); }
+
+.report-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.report-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.report-item span {
+    font-size: 0.85rem;
+    color: var(--stone-500);
+    font-weight: 600;
+}
+
+.report-item strong {
+    font-size: 1rem;
+    color: var(--stone-900);
+    font-weight: 700;
+}
+
+.prediction-params-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.param-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+}
+
+.param-row label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--stone-400);
+    text-transform: uppercase;
+}
+
+.param-row span {
+    font-weight: 700;
+    color: var(--stone-800);
+}
+
+.param-note {
+    font-size: 0.7rem;
+    color: var(--stone-400);
+    font-style: italic;
+    margin-top: 1rem;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    padding-top: 0.5rem;
+}
+
+.glass-card.full-width {
+    grid-column: span 2;
+}
+
+.text-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.text-btn.danger {
+    color: var(--red-500);
+}
+
+.text-btn.danger:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.text-btn.warning {
+    color: var(--amber-500);
+}
+
+.text-btn.warning:hover {
+    background: rgba(245, 158, 11, 0.1);
+}
+
+.text-btn.success {
+    color: var(--emerald-500);
+}
+
+.text-btn.success:hover {
+    background: rgba(16, 185, 129, 0.1);
+}
+
+/* --- Logs & Tables --- */
+.log-list {
+    background: var(--stone-900);
+    border-radius: 9px;
+    padding: 1rem;
+    /* Terminal behavior: grow to fill the card body (so this card matches
+       the prediction card beside it on typical sizes), but CAP it so the
+       dark box never becomes absurdly tall on larger rows — beyond the cap
+       it scrolls internally instead of stretching the dashboard. */
+    flex: 1 1 auto;
+    min-height: 180px;
+    max-height: 300px;
+    overflow-y: auto;
+    /* Same slim branded scrollbar as the Emergency Info tables (Firefox) */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(44, 95, 151, 0.55) rgba(28, 25, 23, 0.05);
+}
+
+/* Custom slim scrollbar (WebKit/Chromium/Safari) — matches .table-scroll */
+.log-list::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+.log-list::-webkit-scrollbar-track {
+    background: rgba(28, 25, 23, 0.05);
+    border-radius: 999px;
+    margin: 6px 4px;
+}
+
+.log-list::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: var(--primary);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+.log-list::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark);
+    background-clip: padding-box;
+}
+
+.log-empty {
+    color: var(--stone-600);
+    text-align: center;
+    padding: 2.25rem 0;
+    font-size: 0.875rem;
+}
+
+.terminal-placeholder {
+    color: var(--stone-600);
+    text-align: center;
+    padding: 2.25rem 0;
+    font-size: 0.875rem;
+}
+
+.table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    /* Custom slim scrollbar (Firefox) */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(44, 95, 151, 0.55) rgba(28, 25, 23, 0.05);
+}
+
+/* Custom scrollbar (WebKit/Chromium/Safari) — slim rounded brand pill
+   instead of the chunky default system bar */
+.table-scroll::-webkit-scrollbar {
+    height: 10px;
+}
+
+.table-scroll::-webkit-scrollbar-track {
+    background: rgba(28, 25, 23, 0.05);
+    border-radius: 999px;
+    margin: 6px 4px;
+}
+
+.table-scroll::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: var(--primary);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+.table-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark);
+    background-clip: padding-box;
+}
+
+[data-theme="dark"] .table-scroll::-webkit-scrollbar-track,
+.bg-night .table-scroll::-webkit-scrollbar-track,
+.bg-stormy .table-scroll::-webkit-scrollbar-track,
+.bg-rainy .table-scroll::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+/* Keep the log terminal scrollbar in sync with the Emergency Info tables
+   on dark weather backgrounds */
+[data-theme="dark"] .log-list::-webkit-scrollbar-track,
+.bg-night .log-list::-webkit-scrollbar-track,
+.bg-stormy .log-list::-webkit-scrollbar-track,
+.bg-rainy .log-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.06);
+}
+.fg-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+}
+.fg-table th {
+    text-align: left;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--stone-600);
+    border: 1px solid var(--hairline);
+    border-width: 1px 0;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.fg-table th:first-child {
+    border-left: 1px solid var(--hairline);
+    border-top-left-radius: 14px;
+    border-bottom-left-radius: 14px;
+}
+
+.fg-table th:last-child {
+    border-right: 1px solid var(--hairline);
+    border-top-right-radius: 14px;
+    border-bottom-right-radius: 14px;
+}
+
+.fg-table td {
+    padding: 1.25rem 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    font-size: 0.95rem;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.fg-table tbody tr {
+    transition: transform 0.2s, background 0.2s;
+}
+
+.fg-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.005);
+}
+
+
+/* --- SIM Card View --- */
+.sim-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.response-box {
+    background: rgba(0, 0, 0, 0.03);
+    padding: 1.25rem;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.box-label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--stone-500);
+    margin-bottom: 8px;
+}
+
+.response-box p {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--stone-900);
+    margin: 0;
+    word-break: break-word;
+}
+
+.response-box small {
+    display: block;
+    margin-top: 10px;
+    color: var(--stone-400);
+    font-size: 0.75rem;
+}
+
+.alert-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 1rem;
+    border-radius: 9px;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.alert-banner.danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--red-500);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+}
+
+.sim-control-panel {
+    grid-column: span 2;
+}
+
+/* Hardware panel sits in the top-right cell (row 1, col 2) */
+.settings-grid .hardware-settings-panel.sim-control-panel {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+@media (max-width: 1024px) {
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+    .sim-control-panel {
+        grid-column: span 1;
+    }
+}
+
+.setting-desc {
+    font-size: 0.85rem;
+    color: var(--stone-500);
+    margin-bottom: 1.5rem;
+}
+
+/* ── Settings Section Polish (classes extracted from inline styles) ── */
+
+/* Desktop 2-column placement:
+   Row 1: Alert Command Center | Hardware & Transmission (incl. Model Calibration)
+   Row 2: System Behavior spans the whole row
+   Row 3: Data Simulation spans the whole row */
+.alert-command-panel {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.system-behavior-panel {
+    grid-column: 1 / -1;
+    grid-row: 2;
+}
+
+.card-head.wrap { flex-wrap: wrap; gap: 8px 12px; }
+
+/* Round header info buttons (Model Config / Hardware Config) */
+.card-info-btn {
+    padding: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(28, 25, 23, 0.05);
+    color: var(--stone-500-2);
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+.card-info-btn svg { width: 16px; height: 16px; }
+.card-info-btn:hover { background: rgba(28, 25, 23, 0.1); color: var(--ink-700); }
+[data-theme="dark"] .card-info-btn { background: rgba(255, 255, 255, 0.08); color: var(--stone-400); }
+[data-theme="dark"] .card-info-btn:hover { background: rgba(255, 255, 255, 0.16); color: var(--stone-200); }
+
+/* Model Calibration lives inside the Hardware & Transmission card —
+   separated by a divider and headed by its own label */
+.hw-ai-section {
+    padding-top: 18px;
+    border-top: 1px solid rgba(100, 116, 139, 0.18);
+}
+
+.hw-ai-section .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.hw-ai-section .form-group:last-of-type {
+    margin-bottom: 0;
+}
+
+.hw-sub-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.hw-sub-label {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--stone-900);
+}
+
+/* Dark-weather adaptation for the Model block inside Hardware */
+[data-theme="dark"] .hw-ai-section,
+.bg-night .hw-ai-section,
+.bg-stormy .hw-ai-section,
+.bg-rainy .hw-ai-section { border-top-color: rgba(148, 163, 184, 0.22); }
+
+[data-theme="dark"] .hw-sub-label,
+.bg-night .hw-sub-label,
+.bg-stormy .hw-sub-label,
+.bg-rainy .hw-sub-label { color: var(--ca-card-text, var(--stone-200)); }
+
+/* Compact two-column field groups */
+.settings-subgrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.settings-subgrid input,
+.wifi-inputs input,
+.input-unit-row input {
+    width: 100%;
+    padding: 0.5rem 0.65rem;
+}
+
+.sub-label {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--stone-400);
+    margin-bottom: 4px;
+}
+
+.field-hint {
+    font-size: 0.65rem;
+    line-height: 1.45;
+    color: var(--stone-400);
+    margin: 4px 0 0;
+}
+.block-hint { display: block; }
+
+/* WiFi fallback highlight box */
+.wifi-fallback-box {
+    background: rgba(44, 95, 151, 0.04);
+    padding: 1rem;
+    border-radius: 9px;
+    border: 1px solid rgba(44, 95, 151, 0.12);
+}
+.wifi-fallback-box > label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--cyan-900);
+}
+.wifi-fallback-box svg { width: 14px; height: 14px; }
+.wifi-inputs { margin-top: 8px; }
+
+[data-theme="dark"] .wifi-fallback-box {
+    background: rgba(44, 95, 151, 0.08);
+    border-color: rgba(44, 95, 151, 0.22);
+}
+[data-theme="dark"] .wifi-fallback-box > label { color: var(--sky-300); }
+
+/* Input + unit suffix rows */
+.input-unit-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.input-unit-row input { min-width: 0; }
+.unit-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--stone-500-2);
+    white-space: nowrap;
+}
+[data-theme="dark"] .unit-label { color: var(--stone-400); }
+
+/* SIM panel helpers */
+.form-group.span-2 { grid-column: span 2; }
+.form-group.span-4 { grid-column: span 4; }
+.sim-datetime-row {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+}
+.sim-datetime-row input { flex: 1; width: 100%; }
+
+/* Boxed green action buttons (Set Now / Add Hotline / Add Shelter) */
+.text-btn.boxed {
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 16px;
+    min-height: 42px;
+    border-radius: 10px;
+    font-weight: 700;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    background: rgba(16, 185, 129, 0.08);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.text-btn.boxed svg { width: 16px; height: 16px; }
+.text-btn.boxed:hover {
+    background: rgba(16, 185, 129, 0.16);
+    border-color: rgba(16, 185, 129, 0.4);
+}
+
+/* Shelters auto-fill grid */
+.shelters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.25rem;
+    margin-top: 1.25rem;
+}
+
+/* Shelter cards are rendered in JS with inline-styled <label>/<strong> that
+   historically hardcoded light colors (invisible on the dark theme). Theme
+   them via the same tokens as the rest of the settings cards so light AND
+   dark weather modes look right. */
+.shelters-grid .glass-card .shelter-card-title {
+    color: var(--ink-900, var(--stone-900));
+}
+.shelters-grid .glass-card .form-group label {
+    color: var(--ink-500, #475569);
+}
+[data-theme="dark"] .shelters-grid .glass-card .shelter-card-title {
+    color: var(--white);
+}
+[data-theme="dark"] .shelters-grid .glass-card .form-group label {
+    color: rgba(255, 255, 255, 0.72);
+}
+
+@media (max-width: 480px) {
+    .settings-subgrid { grid-template-columns: 1fr; }
+    .shelters-grid { grid-template-columns: 1fr; }
+}
+
+.sim-form-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.sim-form-grid .form-group label {
+    font-size: 0.75rem;
+}
+
+.sim-form-grid input {
+    width: 100%;
+    padding: 0.6rem;
+    background: rgba(0,0,0,0.03);
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 8px;
+    font-weight: 700;
+}
+
+.warning-note {
+    display: block;
+    margin-top: 10px;
+    font-size: 0.7rem;
+    color: var(--amber-500);
+    font-style: italic;
+    text-align: center;
+}
+
+select.input-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--hairline);
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: var(--stone-900);
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1.2rem;
+}
+
+.range-input {
+    width: 100%;
+    height: 6px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 5px;
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.range-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--primary);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(44, 95, 151, 0.3);
+}
+
+.range-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--stone-400);
+    text-transform: uppercase;
+}
+
+[data-theme="dark"] select.input-control {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 1024px) {
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+    /* Single-column mode: cards stack in DOM order
+       (Alert Command Center, System Behavior, Hardware & Transmission,
+        Data Simulation) */
+    .alert-command-panel,
+    .system-behavior-panel,
+    .settings-grid .hardware-settings-panel.sim-control-panel {
+        grid-column: 1;
+        grid-row: auto;
+    }
+}
+
+/* --- Navigation & Badges --- */
+.system-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: var(--glass-blur-2);
+    -webkit-backdrop-filter: var(--glass-blur-2);
+    border: 1px solid var(--hairline);
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    box-shadow: var(--shadow-xs);
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--stone-400);
+}
+
+.dot-online {
+    background: var(--emerald-500);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* --- Toast Notification --- */
+.toast-notification {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--stone-900);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 9px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+    z-index: 9999;
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.toast-notification.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* --- Mobile Nav --- */
+.mobile-nav { display: none; } /* legacy hook — bottom nav replaced by hamburger dropdown */
+
+/* --- TABLET BREAKPOINT --- */
+@media (max-width: 1280px) {
+    .stats-grid-modern { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 1024px) {
+    .desktop-sidebar { display: none; }
+    .view-header {
+        display: flex;
+        padding: 0 1rem;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 70px;
+    }
+    .desktop-status { display: none; }
+    .mobile-brand { font-size: 1rem; }
+    .mobile-menu-btn { display: flex; }
+    .system-badge {
+        background: rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+    .scroll-area {
+        padding: 1.5rem;
+        padding-top: 85px;
+        padding-bottom: 1.5rem;
+    }
+    .stats-grid-modern { grid-template-columns: repeat(2, 1fr); }
+
+
+
+    /* Hamburger dropdown — replaces the old 7-item bottom nav bar */
+    .mobile-menu-wrap { position: relative; }
+
+    .mobile-menu-dropdown {
+        position: absolute;
+        top: 46px;
+        right: 0;
+        min-width: 210px;
+        background: var(--surface);
+        backdrop-filter: var(--glass-blur-3);
+        -webkit-backdrop-filter: var(--glass-blur-3);
+        border: 1px solid var(--hairline);
+        border-radius: 10px;
+        box-shadow: 0 12px 32px -8px rgba(28, 25, 23, 0.16);
+        z-index: 1100;
+        overflow: hidden;
+    }
+
+    .mobile-menu-dropdown[hidden] { display: none; }
+
+    .mobile-menu-dropdown .nav-btn {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        color: var(--ink-500);
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 700;
+        width: 100%;
+        text-align: left;
+        background: none;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .mobile-menu-dropdown .nav-btn:hover { background: rgba(28, 25, 23, 0.06); }
+    .mobile-menu-dropdown .nav-btn.active { color: var(--primary); }
+    .mobile-menu-dropdown .nav-btn i { width: 18px; height: 18px; flex: none; }
+
+    .mobile-menu-sep { height: 1px; background: var(--hairline); margin: 4px 0; }
+
+    /* Red is reserved for emergency states — sign-out stays neutral */
+    .mobile-menu-dropdown .logout-item:hover { color: var(--ink-700); }
+
+    /* Install entry: same row anatomy as menu items, keeps its own accent */
+    .mobile-menu-dropdown .header-install-btn {
+        display: flex;
+        width: 100%;
+        justify-content: flex-start;
+        gap: 12px;
+        padding: 12px 16px;
+        border: none;
+        border-radius: 0;
+        background: none;
+        box-shadow: none;
+        color: var(--ink-500);
+        font-size: 0.85rem;
+        font-weight: 700;
+        font-family: inherit;
+        cursor: pointer;
+        transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .mobile-menu-dropdown .header-install-btn i { width: 18px; height: 18px; flex: none; color: var(--primary); }
+
+    .mobile-menu-dropdown .header-install-btn:hover {
+        background: rgba(28, 25, 23, 0.06);
+        transform: none;
+        color: var(--ink-700);
+        box-shadow: none;
+    }
+
+    .input-wrapper {
+        flex-direction: column;
+    }
+
+    .chart-container-large {
+        height: 280px;
+    }
+
+    .chart-container-medium {
+        height: 250px;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-telemetry-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    .weather-strip-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .view-header { padding: 0 1rem; }
+    .view-header h1 { font-size: 1.1rem; }
+    .scroll-area {
+        padding: 1rem;
+        padding-top: 80px;
+        padding-bottom: 1rem;
+    }
+    .hero-flood-banner { padding: 1.25rem; border-radius: 10px; gap: 1.25rem; }
+    .hero-greeting-row h1 { font-size: 1.3rem; }
+    .hero-value { font-size: 2rem; }
+    .hero-metric-box { padding: 1rem 1.15rem; border-radius: 10px; }
+    .weather-strip-grid { grid-template-columns: repeat(2, 1fr); gap: 0.65rem; }
+    .weather-chip { padding: 0.75rem 0.85rem; border-radius: 10px; gap: 0.65rem; }
+    .chip-icon { width: 34px; height: 34px; border-radius: 10px; }
+    .chip-value { font-size: 1.1rem; }
+    .compact-subgrid { grid-template-columns: 1fr !important; }
+    .stats-grid-modern { grid-template-columns: 1fr; gap: 0.75rem; }
+    .metric-card-glass { padding: 1rem; gap: 0.75rem; }
+    .metric-icon-box { width: 40px; height: 40px; border-radius: 9px; }
+    .metric-info h3 { font-size: 1rem; }
+
+    .glass-card { padding: 1.25rem; border-radius: 10px; }
+    .chart-container-large { height: 220px; }
+    .chart-container-medium { height: 200px; }
+    .chart-panel-large { padding: 1.25rem; border-radius: 10px; }
+
+    textarea { min-height: 140px; }
+    .log-list { min-height: 180px; max-height: 240px; }
+
+    .fg-table th, .fg-table td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    .prediction-icon { width: 48px; height: 48px; border-radius: 10px; }
+    .outlook-info h4 { font-size: 1rem; }
+}
+
+@media (max-width: 380px) {
+    /* Keep 2-up but compact so the chips never wrap under the icon. */
+    .weather-strip-grid { grid-template-columns: repeat(2, 1fr); gap: 0.55rem; }
+    .weather-chip { padding: 0.65rem 0.7rem; border-radius: 10px; gap: 0.5rem; }
+    .chip-icon { width: 30px; height: 30px; border-radius: 8px; }
+    .chip-value { font-size: 1rem; }
+    .hero-greeting-row { flex-direction: column; align-items: flex-start; gap: 6px; }
+    .hero-value { font-size: 1.75rem; }
+    .hero-banner-footer { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .hero-map-btn { width: 100%; justify-content: center; }
+}
+
+/* --- Mobile Specific Fixes --- */
+@media (max-width: 768px) {
+    #section-reports .main-grid {
+        display: block !important;
+    }
+    #section-reports .main-grid .glass-card {
+        width: 100% !important;
+        margin-bottom: 1.5rem !important;
+        display: flex !important; /* Keep internal flex but occupy full row */
+    }
+}
+
+/* ── Dark Weather Adaptations ── */
+[data-theme="dark"] .hero-flood-banner {
+    background: rgba(28, 25, 23, 0.65);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+}[data-theme="dark"] .hero-greeting-row h1,
+[data-theme="dark"] .hero-value,
+[data-theme="dark"] .hero-sub-metric .sub-val,
+[data-theme="dark"] .hero-location-info .loc-name,
+[data-theme="dark"] .chip-value {
+    color: var(--white);
+}[data-theme="dark"] .hero-status-subtitle,
+[data-theme="dark"] .hero-time-text,
+[data-theme="dark"] .hero-box-label,
+[data-theme="dark"] .hero-unit,
+[data-theme="dark"] .hero-sub-metric,
+[data-theme="dark"] .hero-location-info,
+[data-theme="dark"] .chip-data label {
+    color: rgba(255, 255, 255, 0.7);
+}[data-theme="dark"] .hero-metric-box,
+[data-theme="dark"] .weather-chip {
+    background: var(--glass-dark-2);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .toggle-sensors-btn {
+    background: var(--glass-dark-2);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: var(--sky-300);
+}
+
+[data-theme="dark"] .toggle-sensors-btn:hover {
+    background: var(--primary);
+    color: var(--white);
+}[data-theme="dark"] .welcome-section h1,
+[data-theme="dark"] .analytics-header h2,
+[data-theme="dark"] .report-item strong,
+[data-theme="dark"] .param-row span { color: var(--white); }[data-theme="dark"] .user-welcome,
+[data-theme="dark"] .report-item span,
+[data-theme="dark"] .param-row label { color: rgba(255, 255, 255, 0.7); }[data-theme="dark"] .glass-card,
+[data-theme="dark"] .metric-card-glass {
+    background: var(--glass-dark-2);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+}[data-theme="dark"] .glass-card h3,
+[data-theme="dark"] .metric-card-glass h3 { color: var(--white); }[data-theme="dark"] .glass-card .label,
+[data-theme="dark"] .metric-info label {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+[data-theme="dark"] .metric-info small {
+    color: rgba(255, 255, 255, 0.7);
+}[data-theme="dark"] .risk-badge,
+[data-theme="dark"] .map-action-link {
+    color: var(--white) !important;
+}
+
+[data-theme="dark"] .form-group label {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+[data-theme="dark"] .prediction-icon {
+    background: rgba(255, 255, 255, 0.05) !important;
+    box-shadow: none;
+}
+
+[data-theme="dark"] .outlook-info h4 { color: var(--white); }
+
+[data-theme="dark"] .outlook-info p { color: rgba(255, 255, 255, 0.6); }
+
+[data-theme="dark"] .prob-item label { color: rgba(255, 255, 255, 0.6); }
+
+[data-theme="dark"] .progress-bg { background: rgba(255, 255, 255, 0.1); }
+
+[data-theme="dark"] .view-header {
+    background: rgba(28, 25, 23, 0.35);
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .mobile-brand {
+    color: var(--white) !important;
+}
+
+[data-theme="dark"] .mobile-menu-btn {
+    background: rgba(28, 25, 23, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    color: rgba(255, 255, 255, 0.5);
+}
+
+[data-theme="dark"] .mobile-menu-dropdown {
+    background: #1c1814;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="dark"] .mobile-menu-dropdown .nav-btn {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+[data-theme="dark"] .mobile-menu-dropdown .nav-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .mobile-menu-dropdown .nav-btn.active {
+    color: var(--primary);
+}
+
+[data-theme="dark"] .mobile-menu-sep { background: rgba(255, 255, 255, 0.08); }
+
+[data-theme="dark"] .mobile-menu-dropdown .header-install-btn {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+[data-theme="dark"] .mobile-menu-dropdown .header-install-btn i { color: var(--primary); }
+
+[data-theme="dark"] .mobile-menu-dropdown .header-install-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+[data-theme="dark"] .fg-table th {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: rgba(255, 255, 255, 0.7);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .fg-table td {
+    background: rgba(255, 255, 255, 0.02);
+    color: rgba(255, 255, 255, 0.85);
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .fg-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.08);
+}[data-theme="dark"] .input-wrapper input,
+[data-theme="dark"] textarea {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: white;
+}[data-theme="dark"] .input-wrapper input:focus,
+[data-theme="dark"] textarea:focus {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: var(--sky-400);
+    box-shadow: 0 0 0 4px rgba(44, 95, 151, 0.15);
+}[data-theme="dark"] .input-wrapper input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+[data-theme="dark"] .system-badge {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+[data-theme="dark"] .response-box {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .response-box p {
+    color: var(--white);
+}
+
+[data-theme="dark"] .box-label {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+[data-theme="dark"] .placeholder-text {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+[data-theme="dark"] .analytics-header h2 { color: var(--white); }[data-theme="dark"] .analytics-header p,
+[data-theme="dark"] .setting-desc { color: rgba(255, 255, 255, 0.6); }
+
+[data-theme="dark"] .sim-form-grid input {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    color: var(--white) !important;
+}
+
+[data-theme="dark"] .sim-form-grid label {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* 7-Day API Forecast Cards Grid */
+.forecast-days-panel {
+    background: rgba(255, 255, 255, 0.45) !important;
+}
+
+/* Dark weather: solid surface — the translucent white panel stacks over
+   the animated background and shows through as layered sheets */
+[data-theme="dark"] .forecast-days-panel {
+    background: var(--glass-dark-2) !important;
+}
+
+.forecast-days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+    width: 100%;
+}
+
+.forecast-day-card {
+    background: rgba(255, 255, 255, 0.65);
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.forecast-day-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+}
+
+.forecast-day-name {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--stone-600);
+    text-transform: uppercase;
+}
+
+.forecast-day-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--sky-500);
+}
+
+.forecast-day-icon i {
+    width: 24px;
+    height: 24px;
+}
+
+.forecast-day-temps {
+    display: flex;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.forecast-day-temps .max {
+    color: var(--stone-900);
+}
+
+.forecast-day-temps .min {
+    color: var(--stone-500);
+}
+
+.forecast-day-rain {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--sky-500);
+}
+
+.forecast-loading, .forecast-error {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    gap: 12px;
+    font-weight: 600;
+    color: var(--stone-500);
+}
+
+.spin-icon {
+    animation: spin 1.5s infinite linear;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+[data-theme="dark"] .forecast-day-card {
+    background: rgba(28, 25, 23, 0.4);
+    border-color: rgba(255, 255, 255, 0.06);
+    box-shadow: none;
+}
+
+[data-theme="dark"] .forecast-day-name {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+[data-theme="dark"] .forecast-day-temps .max {
+    color: var(--white);
+}
+
+[data-theme="dark"] .forecast-day-temps .min {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+[data-theme="dark"] .forecast-day-rain {
+    color: var(--sky-400);
+}
+
+[data-theme="dark"] .forecast-day-icon {
+    color: var(--sky-400);
+}
+
+/* Tablet & Mobile responsive forecast list adjustments */
+@media (max-width: 1024px) {
+    .forecast-days-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    /* Switch forecast grid to horizontal scroll row on small screens */
+    .forecast-days-grid {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        gap: 10px;
+        padding: 4px 2px;
+    }
+    .forecast-days-grid::-webkit-scrollbar {
+        display: none;
+    }
+    .forecast-day-card {
+        min-width: 130px;
+        flex-shrink: 0;
+        scroll-snap-align: start;
+    }
+
+    /* Sensor chips stay 2-up on phones — compact grid matches the user
+       dashboard. */
+    .weather-strip-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.65rem;
+    }
+
+    /* Card heads: allow wrapping */
+    .card-head h3 {
+        font-size: 0.95rem;
+        white-space: normal;
+        line-height: 1.3;
+    }
+
+    /* Time range bar: stack vertically */
+    .time-range-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+    }
+    .time-range-pills {
+        width: 100%;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        -webkit-overflow-scrolling: touch;
+    }
+    .time-range-pills::-webkit-scrollbar {
+        display: none;
+    }
+    .range-pill {
+        flex-shrink: 0;
+        font-size: 0.8rem;
+        padding: 0.4rem 0.85rem;
+    }
+    .time-range-custom {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .range-date-input {
+        flex: 1;
+        min-width: 0;
+    }
+}
+
+@media (max-width: 380px) {
+    .stats-grid-modern {
+        grid-template-columns: 1fr !important;
+        gap: 0.65rem;
+    }
+
+    .metric-card-glass {
+        padding: 0.85rem;
+    }
+
+    .chart-container-large, .chart-container-medium {
+        height: 200px !important;
+    }
+}
+
+/* Phones: stack the Data Simulation grid as 2 columns × 4 rows so each
+   row pairs two related inputs (Rainfall | Rain Rate, Water Level | Water Rise,
+   Temp | Light, Hum | Press). Shrink the gap so the fields stay tappable. */
+@media (max-width: 640px) {
+    .sim-form-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.6rem;
+    }
+    .form-group.span-2,
+    .form-group.span-4 {
+        grid-column: 1 / -1;
+    }
+}
+
+
+/* Hourly Timeline Styles */
+.hourly-forecast-row {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 10px 5px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    width: 100%;
+}
+
+.hourly-forecast-row::-webkit-scrollbar {
+    display: none;
+}
+
+/* ── Timeline cards: flat solid tiles, one accent for "Now" ──
+   Mirrors the user dashboard redesign — no glass, no rgba fills,
+   no !important tint wars — the Now card is the ONLY colored element. */
+.hourly-item {
+    min-width: 95px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 12px;
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-xs);
+    transition: transform 0.3s var(--ease-glass), box-shadow 0.3s ease, border-color 0.2s ease;
+    flex-shrink: 0;
+}
+
+.hourly-item:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-sm);
+    border-color: var(--hairline-strong);
+}
+
+.hourly-time {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--stone-600);
+    letter-spacing: 0.3px;
+}
+
+.hourly-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--stone-600);
+    background: var(--cream);
+    border-radius: 9px;
+    padding: 6px;
+    transition: transform 0.3s var(--ease-glass);
+}
+
+.hourly-item:hover .hourly-icon {
+    transform: scale(1.08);
+}
+
+.hourly-temp {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--stone-900);
+}
+
+/* "Now" card — white fill like the other tiles; the light blue outline is
+   the ONLY difference (day theme) */
+.hourly-item.is-now {
+    background: var(--surface);
+    border-color: var(--sky-300);
+    outline: 1.5px solid var(--sky-300);
+    box-shadow: none;
+}
+
+.hourly-item.is-now:hover {
+    transform: translateY(-3px);
+    box-shadow: none;
+}
+
+.hourly-item.is-now .hourly-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--stone-600);
+    font-weight: 800;
+}
+
+.hourly-item.is-now .hourly-temp {
+    color: var(--stone-900);
+}
+
+.hourly-item.is-now .hourly-icon {
+    color: var(--stone-600);
+    background: var(--cream);
+}
+
+/* Pulsing dot for the live "Now" label (sits on the shared fill) */
+.timeline-pulse-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--primary);
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 0 0 rgba(44, 95, 151, 0.7);
+    animation: timeline-pulse 2s infinite;
+}
+
+@keyframes timeline-pulse {
+    0%   { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(44, 95, 151, 0.7); }
+    70%  { transform: scale(1);    box-shadow: 0 0 0 6px rgba(44, 95, 151, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(44, 95, 151, 0); }
+}
+
+/* Dark theme: same design, dark surfaces — no re-tinting */
+[data-theme="dark"] .hourly-item {
+    background: var(--glass-dark-2);
+    border-color: var(--glass-dark-border);
+}
+
+[data-theme="dark"] .hourly-time {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+[data-theme="dark"] .hourly-temp {
+    color: var(--white);
+}
+
+[data-theme="dark"] .hourly-icon {
+    color: var(--sky-300);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+/* Dark Now card: fill matches the other dark tiles; outline stays light blue */
+[data-theme="dark"] .hourly-item.is-now {
+    background: var(--glass-dark-2);
+    border-color: var(--sky-300);
+    outline-color: var(--sky-300);
+}
+
+[data-theme="dark"] .hourly-item.is-now .hourly-time {
+    color: var(--sky-300);
+}
+
+[data-theme="dark"] .hourly-item.is-now .hourly-temp {
+    color: var(--white);
+}
+
+[data-theme="dark"] .hourly-item.is-now .hourly-icon {
+    color: var(--sky-300);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="dark"] .timeline-pulse-dot {
+    background: var(--sky-300);
+    box-shadow: 0 0 0 0 rgba(147, 197, 253, 0.7);
+}
+
+/* ── PWA Install Buttons (Admin) ── */
+.pwa-install-sidebar-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.75rem 1rem;
+    background: var(--primary-dark);
+    color: white;
+    border: none;
+    border-radius: 9px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(21, 94, 117, 0.35);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    font-family: inherit;
+    width: 100%;
+}
+
+.pwa-install-sidebar-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(21, 94, 117, 0.45);
+}
+
+.header-install-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.45rem 0.85rem;
+    background: var(--primary-dark);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(21, 94, 117, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+    font-family: inherit;
+}
+
+.header-install-btn:hover {
+    transform: scale(1.04);
+}
+
+/* ── Settings & Emergency Directory Inputs ── */
+.settings-input, .input-control, .form-group input, .form-group select, .form-group textarea {
+    padding: 0.65rem 0.85rem;
+    border: 1.5px solid rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.85);
+    color: var(--stone-900);
+    font-size: 0.85rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+}
+
+.settings-input:focus, .input-control:focus, .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: var(--primary);
+    background: var(--white);
+    box-shadow: 0 0 0 3px rgba(44, 95, 151, 0.15);
+}[data-theme="dark"] .settings-input,
+[data-theme="dark"] .input-control,
+[data-theme="dark"] .form-group input,
+[data-theme="dark"] .form-group select,
+[data-theme="dark"] .form-group textarea {
+    background: rgba(28, 25, 23, 0.7);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: var(--stone-50);
+}[data-theme="dark"] .settings-input:focus,
+[data-theme="dark"] .input-control:focus,
+[data-theme="dark"] .form-group textarea:focus {
+    border-color: var(--sky-400);
+    background: rgba(28, 25, 23, 0.9);
+    box-shadow: 0 0 0 3px rgba(44, 95, 151, 0.25);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   RECOMMENDED UPGRADES LAYER (Admin)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Skeleton Shimmer Loaders ─────────────────────────────────── */
+.skeleton-hour {
+    min-width: 88px;
+    height: 108px;
+    border-radius: var(--r-lg);
+    background: linear-gradient(100deg, rgba(255,255,255,0.35) 40%, rgba(255,255,255,0.75) 50%, rgba(255,255,255,0.35) 60%);
+    background-size: 200% 100%;
+    animation: skeletonShimmerAdmin 1.4s linear infinite;
+    flex-shrink: 0;
+}
+
+.skeleton-day {
+    height: 128px;
+    border-radius: 10px;
+    background: linear-gradient(100deg, rgba(255,255,255,0.35) 40%, rgba(255,255,255,0.75) 50%, rgba(255,255,255,0.35) 60%);
+    background-size: 200% 100%;
+    animation: skeletonShimmerAdmin 1.4s linear infinite;
+}
+
+@keyframes skeletonShimmerAdmin {
+    from { background-position: 200% 0; }
+    to   { background-position: -200% 0; }
+}
+
+.bg-night .skeleton-hour,
+.bg-night .skeleton-day,
+.bg-stormy .skeleton-hour,
+.bg-stormy .skeleton-day,
+.bg-rainy .skeleton-hour,
+.bg-rainy .skeleton-day {
+    background: linear-gradient(100deg, rgba(255,255,255,0.05) 40%, rgba(255,255,255,0.14) 50%, rgba(255,255,255,0.05) 60%);
+    background-size: 200% 100%;
+}
+
+.forecast-loading { grid-column: 1 / -1; display: flex; flex-direction: row; align-items: stretch; justify-content: flex-start; gap: 10px; overflow: hidden; padding: 4px 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+    .skeleton-hour, .skeleton-day { animation: none; opacity: 0.6; }
+}
+
+/* ── Amenity Tag Editor (shelter cards) ───────────────────────── */
+.amenity-tag-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-md);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.amenity-tag-editor:focus-within {
+    border-color: var(--primary);
+    box-shadow: var(--ring);
+    background: var(--white);
+}
+
+.amenity-tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.amenity-tag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 6px 4px 11px;
+    background: rgba(44, 95, 151, 0.1);
+    border: 1px solid rgba(44, 95, 151, 0.22);
+    color: var(--primary-dark);
+    border-radius: 100px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    animation: chipPopIn 0.18s var(--ease-glass);
+}
+
+@keyframes chipPopIn {
+    from { opacity: 0; transform: scale(0.85); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+.chip-remove {
+    width: 17px;
+    height: 17px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--primary-dark);
+    font-size: 0.85rem;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.55;
+    transition: all 0.15s ease;
+    padding: 0;
+}
+
+.chip-remove:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--red-600);
+    opacity: 1;
+    transform: scale(1.08);
+}
+
+.amenities-hint { font-size: 0.7rem; color: var(--ink-400); margin-top: 4px; }
+
+.amenity-tag-input {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 4px 2px !important;
+    font-size: 0.85rem;
+}
+
+.amenity-tag-input:focus { outline: none; }
+
+[data-theme="dark"] .amenity-tag-editor {
+    background: rgba(28, 25, 23, 0.5);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="dark"] .amenity-tag-editor {
+    background: rgba(28, 25, 23, 0.5);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* ── Admin Empty States (emergency directory starts empty) ───── */
+.admin-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+    padding: 2.25rem 1.5rem;
+    border: 1.5px dashed rgba(28, 25, 23, 0.18);
+    border-radius: var(--r-lg);
+    background: rgba(255, 255, 255, 0.45);
+    color: var(--ink-500);
+}
+
+.admin-empty-state i { width: 30px; height: 30px; color: var(--ink-400); margin-bottom: 2px; }
+.admin-empty-state strong { font-size: 0.98rem; font-weight: 700; color: var(--ink-700); }
+.admin-empty-state p { margin: 0; font-size: 0.84rem; line-height: 1.5; max-width: 440px; }
+
+td > .admin-empty-state { width: 100%; }
+
+[data-theme="dark"] .admin-empty-state,
+.bg-night .admin-empty-state,
+.bg-stormy .admin-empty-state,
+.bg-rainy .admin-empty-state {
+    border-color: rgba(255, 255, 255, 0.15);
+    background: rgba(28, 25, 23, 0.4);
+    color: rgba(255, 255, 255, 0.55);
+}
+[data-theme="dark"] .admin-empty-state strong,
+.bg-night .admin-empty-state strong,
+.bg-stormy .admin-empty-state strong,
+.bg-rainy .admin-empty-state strong { color: var(--stone-200); }
+
+/* Content container constraint on ultra-wide screens */
+.view-section { max-width: 1360px; margin-inline: auto; width: 100%; }
+
+/* ── Alert-Level Threshold Boxes (L1/L2/L3) ───────────────────── */
+.alert-level-box {
+    position: relative;
+    padding: 14px 16px 14px 20px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow: hidden;
+}
+
+/* Tier-colored accent spine on the left edge */
+.alert-level-box::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    border-radius: 4px 0 0 4px;
+}
+.alert-level-box.l1::before { background: var(--amber-600); }
+.alert-level-box.l2::before { background: var(--orange-600); }
+.alert-level-box.l3::before { background: var(--red-600); }
+
+/* ── Settings panels: labels & titles stay on ONE line ─────────────── */
+/* Long labels/titles are trimmed with an ellipsis ("…") instead of
+   wrapping to a second line. Explanatory texts (.setting-desc,
+   .field-hint, .maint-hint, .warning-note, toggle small text) are
+   intentionally NOT included — those keep normal wrapping. */
+#section-settings .alb-field-label,
+#section-settings .alb-label,
+#section-settings .sub-label,
+#section-settings .hw-sub-label,
+#section-settings .sysb-field-head label,
+#section-settings .form-group > label,
+#section-settings .card-head h3,
+#section-settings .maint-toggle-text strong {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+#section-settings .alb-pill {
+    white-space: nowrap;
+    min-width: 0;
+}
+
+/* ── Alert Command Center (merged config + maintenance) ───────── */
+.alert-command-panel .setting-desc {
+    margin-bottom: 1.25rem;
+}
+
+/* ── Stale Sensor Data Warning (owner view: device troubleshooting) ── */
+.stale-data-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 1rem;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: rgba(254, 243, 199, 0.6);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    color: var(--amber-700, #b45309);
+    font-size: 0.8rem;
+    line-height: 1.45;
+}
+.stale-data-banner i { width: 18px; height: 18px; flex-shrink: 0; }
+
+/* Stale banner lives on the front hero (Command Center) — keep it readable there.
+   The hero is a flex column with a 1.5rem gap; cancel most of that gap below the
+   banner so it hugs the "Command Center" heading instead of leaving a huge band. */
+.admin-hero .stale-data-banner {
+    margin-bottom: -1rem; /* 1.5rem flex gap − 1rem ≈ 0.5rem visual gap */
+    font-weight: 600;
+    backdrop-filter: blur(4px);
+}
+
+[data-theme="dark"] .stale-data-banner,
+.bg-night .stale-data-banner,
+.bg-stormy .stale-data-banner,
+.bg-rainy .stale-data-banner {
+    background: #4a3213;
+    border-color: rgba(245, 158, 11, 0.4);
+    color: var(--amber-400, #fbbf24);
+}
+
+.alb-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 10px;
+    margin-bottom: 2px;
+    border-bottom: 1px dashed rgba(148, 163, 184, 0.35);
+}
+
+.alb-field-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--stone-600);
+    display: block;
+    margin-bottom: 4px;
+}
+
+.alb-threshold-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.alert-level-box .settings-input {
+    width: 100%;
+}
+
+.alert-level-box textarea.settings-input {
+    min-height: 52px;
+    resize: vertical;
+    line-height: 1.4;
+}
+
+/* Per-level manual SMS send buttons — quiet ghost style, fills on hover */
+.alb-send-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px 18px;
+    border-radius: 9px;
+    border: 1.5px solid transparent;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    align-self: flex-end;
+}
+
+.alb-send-btn i, .alb-send-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
+.l1-send { color: var(--amber-700); border-color: rgba(245, 158, 11, 0.5); background: rgba(245, 158, 11, 0.07); }
+.l2-send { color: #c2410c; border-color: rgba(249, 115, 22, 0.5); background: rgba(249, 115, 22, 0.07); }
+.l3-send { color: var(--red-700); border-color: rgba(239, 68, 68, 0.55); background: rgba(239, 68, 68, 0.07); }
+
+.l1-send:hover { background: var(--amber-600); border-color: transparent; color: var(--white); box-shadow: 0 6px 16px -6px rgba(245, 158, 11, 0.65); transform: translateY(-1px); }
+.l2-send:hover { background: var(--orange-600); border-color: transparent; color: var(--white); box-shadow: 0 6px 16px -6px rgba(249, 115, 22, 0.65); transform: translateY(-1px); }
+.l3-send:hover { background: var(--red-600); border-color: transparent; color: var(--white); box-shadow: 0 6px 16px -6px rgba(239, 68, 68, 0.7); transform: translateY(-1px); }
+
+.alb-send-btn:active { transform: translateY(0); }
+.alb-send-btn:disabled {
+    opacity: 0.55;
+    cursor: wait;
+    transform: none;
+    filter: grayscale(0.3);
+}
+
+/* Ghost buttons on dark weather contexts */
+[data-theme="dark"] .l1-send, .bg-night .l1-send, .bg-stormy .l1-send, .bg-rainy .l1-send { color: #fcd34d; }
+[data-theme="dark"] .l2-send, .bg-night .l2-send, .bg-stormy .l2-send, .bg-rainy .l2-send { color: #fdba74; }
+[data-theme="dark"] .l3-send, .bg-night .l3-send, .bg-stormy .l3-send, .bg-rainy .l3-send { color: var(--red-300); }
+
+/* ── System Behavior Controls ──
+   Rendered as its own card in the settings grid: two symmetric setting
+   fields in a responsive grid, a roomy maintenance toggle with a live
+   status pill, then a full-width apply.
+   (iOS toggle hooks .maint-toggle-* stay unchanged for dark-mode rules.) */
+.sysb-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.sysb-field {
+    margin: 0;
+    min-width: 0;
+    padding: 13px 14px;
+    border-radius: 12px;
+    background: rgba(100, 116, 139, 0.05);
+    border: 1px solid rgba(100, 116, 139, 0.16);
+}
+
+.sysb-field-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 9px;
+}
+
+.sysb-field-head i {
+    width: 14px;
+    height: 14px;
+    color: var(--primary);
+}
+
+.sysb-field-head label {
+    margin: 0;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--ca-card-muted, var(--stone-600));
+}
+
+.maint-cooldown-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.maint-cooldown-row .input-control {
+    width: 100%;
+    max-width: 130px;
+    padding: 8px 10px;
+}
+
+.maint-unit {
+    font-weight: 700;
+    color: var(--stone-500-2);
+    white-space: nowrap;
+    font-size: 0.8rem;
+}
+
+.maint-hint {
+    display: block;
+    margin-top: 6px;
+    color: var(--stone-400);
+    font-size: 0.65rem;
+    line-height: 1.45;
+}
+
+/* iOS-style maintenance toggle — full-width row with live status pill */
+.maint-toggle-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(217, 119, 6, 0.06);
+    border: 1px solid rgba(217, 119, 6, 0.22);
+}
+
+/* Remote sensor data reset — same amber treatment as the maintenance row. */
+.reset-sensor-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(217, 119, 6, 0.06);
+    border: 1px solid rgba(217, 119, 6, 0.22);
+}
+
+.reset-sensor-box .maint-toggle-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.reset-sensor-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    padding: 9px 14px;
+    border: none;
+    border-radius: 10px;
+    background: var(--amber-600);
+    color: var(--white);
+    font-weight: 800;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease, opacity 0.2s ease;
+}
+
+.reset-sensor-btn i {
+    width: 14px;
+    height: 14px;
+}
+
+.reset-sensor-btn:hover { background: var(--amber-700); }
+.reset-sensor-btn:active { transform: scale(0.96); }
+.reset-sensor-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* Rate Computation card — matched to the settings rows, grid of small selects. */
+.rate-settings-box {
+    margin-top: 10px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(100, 116, 139, 0.05);
+    border: 1px solid rgba(100, 116, 139, 0.16);
+}
+
+.rate-settings-box-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.rate-defaults-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+    padding: 6px 11px;
+    border: 1px solid rgba(100, 116, 139, 0.22);
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.rate-defaults-btn i {
+    width: 14px;
+    height: 14px;
+}
+
+.rate-defaults-btn:hover { background: rgba(100, 116, 139, 0.12); }
+
+[data-theme="dark"] .rate-defaults-btn,
+.bg-night .rate-defaults-btn,
+.bg-stormy .rate-defaults-btn,
+.bg-rainy .rate-defaults-btn { color: var(--stone-400); border-color: rgba(255, 255, 255, 0.16); }
+[data-theme="dark"] .rate-defaults-btn:hover,
+.bg-night .rate-defaults-btn:hover,
+.bg-stormy .rate-defaults-btn:hover,
+.bg-rainy .rate-defaults-btn:hover { background: rgba(255, 255, 255, 0.12); color: var(--stone-200); }
+
+.rate-settings-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.rate-settings-box select.settings-input {
+    width: 100%;
+    margin: 0;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(100, 116, 139, 0.05);
+    border: 1px solid rgba(100, 116, 139, 0.16);
+    color: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.rate-settings-box .maint-toggle-text small {
+    color: var(--stone-400);
+}
+
+.maint-toggle-checkbox {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.maint-toggle-track {
+    position: relative;
+    flex-shrink: 0;
+    width: 46px;
+    height: 26px;
+    border-radius: 999px;
+    background: rgba(28, 25, 23, 0.18);
+    cursor: pointer;
+    transition: background 0.25s ease;
+}
+
+.maint-toggle-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--white);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.maint-toggle-checkbox:checked + .maint-toggle-track {
+    background: var(--amber-500);
+}
+
+.maint-toggle-checkbox:checked + .maint-toggle-track .maint-toggle-thumb {
+    transform: translateX(20px);
+}
+
+.maint-toggle-checkbox:focus-visible + .maint-toggle-track {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.maint-toggle-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.maint-toggle-text strong {
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: var(--amber-600);
+    white-space: nowrap;
+}
+
+.maint-toggle-text small {
+    font-size: 0.7rem;
+    color: #92400e;
+}
+
+/* Live status pill — JS toggles data-state="on"/"off" */
+.sysb-state {
+    margin-left: auto;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #16a34a;
+    background: rgba(22, 163, 74, 0.12);
+    white-space: nowrap;
+    transition: color 0.2s ease, background 0.2s ease;
+}
+
+.sysb-state[data-state="on"] {
+    color: var(--amber-700);
+    background: rgba(217, 119, 6, 0.18);
+}
+
+.maint-apply-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 14px;
+    padding: 11px 18px !important;
+}
+
+/* Dark-weather adaptation for the new layout. Solid slate fill — the
+   translucent rgba (0.35 alpha) washed out to near-invisible on the
+   charcoal card. .rate-settings-box had NO dark override before and kept
+   its 0.05-alpha light fill (fully invisible in dark mode). */
+[data-theme="dark"] .sysb-field,
+.bg-night .sysb-field,
+.bg-stormy .sysb-field,
+.bg-rainy .sysb-field,
+[data-theme="dark"] .rate-settings-box,
+.bg-night .rate-settings-box,
+.bg-stormy .rate-settings-box,
+.bg-rainy .rate-settings-box {
+    background: #2c2f35;
+    border-color: rgba(148, 163, 184, 0.28);
+}
+
+/* Solid amber tint — the 0.08-alpha rgba was invisible on the charcoal
+   card. .reset-sensor-box shares the amber treatment and previously had
+   no dark override at all. */
+[data-theme="dark"] .maint-toggle-box,
+.bg-night .maint-toggle-box,
+.bg-stormy .maint-toggle-box,
+.bg-rainy .maint-toggle-box,
+[data-theme="dark"] .reset-sensor-box,
+.bg-night .reset-sensor-box,
+.bg-stormy .reset-sensor-box,
+.bg-rainy .reset-sensor-box { background: #3a2c12; border-color: rgba(217, 119, 6, 0.3); }
+
+@media (max-width: 720px) {
+    .alb-threshold-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Between 641–720px keep the 2×2 threshold grid — number inputs stay
+       comfortably wide and the three level boxes remain compact. Below 641px
+       (phones/portrait) the grid collapses to one column so each colored
+       level box gets full-width fields instead of a cramped 2-up strip. */
+    @media (min-width: 641px) {
+        .alb-threshold-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    .sysb-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Rate Computation gray box: stack its unit/window selects so the inner
+       .sysb-field boxes get full width instead of a cramped 2-up strip. */
+    .rate-settings-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .maint-cooldown-row .input-control {
+        flex: 1;
+        width: auto;
+    }
+
+    .maint-apply-btn {
+        width: 100%;
+    }
+
+    .alb-send-btn {
+        width: 100%;
+        align-self: stretch;
+    }
+}
+
+[data-theme="dark"] .alert-command-panel .setting-desc,
+.bg-night .alert-command-panel .setting-desc,
+.bg-stormy .alert-command-panel .setting-desc,
+.bg-rainy .alert-command-panel .setting-desc { color: var(--stone-400); }
+
+[data-theme="dark"] .alb-field-label,
+.bg-night .alb-field-label,
+.bg-stormy .alb-field-label,
+.bg-rainy .alb-field-label { color: var(--stone-300); }
+
+[data-theme="dark"] .maint-unit,
+.bg-night .maint-unit,
+.bg-stormy .maint-unit,
+.bg-rainy .maint-unit { color: var(--stone-300); }
+
+[data-theme="dark"] .maint-hint,
+.bg-night .maint-hint,
+.bg-stormy .maint-hint,
+.bg-rainy .maint-hint { color: var(--stone-400); }
+
+[data-theme="dark"] .maint-toggle-track,
+.bg-night .maint-toggle-track,
+.bg-stormy .maint-toggle-track,
+.bg-rainy .maint-toggle-track { background: rgba(255, 255, 255, 0.18); }
+
+[data-theme="dark"] .maint-toggle-text strong,
+.bg-night .maint-toggle-text strong,
+.bg-stormy .maint-toggle-text strong,
+.bg-rainy .maint-toggle-text strong { color: var(--amber-400); }
+
+[data-theme="dark"] .maint-toggle-text small,
+.bg-night .maint-toggle-text small,
+.bg-stormy .maint-toggle-text small,
+.bg-rainy .maint-toggle-text small { color: var(--amber-200); }
+
+.alert-level-box.l1 { background: rgba(245, 158, 11, 0.06); border: 1px solid rgba(245, 158, 11, 0.25); }
+.alert-level-box.l2 { background: rgba(249, 115, 22, 0.06); border: 1px solid rgba(249, 115, 22, 0.25); }
+.alert-level-box.l3 { background: rgba(239, 68, 68, 0.06); border: 1px solid rgba(239, 68, 68, 0.25); }
+
+.alb-label {
+    font-weight: 700;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.alert-level-box.l1 .alb-label { color: var(--amber-600); }
+.alert-level-box.l2 .alb-label { color: var(--orange-600); }
+.alert-level-box.l3 .alb-label { color: var(--red-600); }
+
+.alb-pill {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 999px;
+}
+
+.alert-level-box.l1 .alb-pill { color: var(--amber-700); background: rgba(245, 158, 11, 0.15); }
+.alert-level-box.l2 .alb-pill { color: #c2410c; background: rgba(249, 115, 22, 0.15); }
+.alert-level-box.l3 .alb-pill { color: var(--red-700); background: rgba(239, 68, 68, 0.15); }
+
+/* Dark: SOLID tinted fills. Translucent rgba here composites over the
+   charcoal card (#201c18) into muddy, washed-out browns — the L1/L2 boxes
+   lost their amber/orange hue entirely (L1 and L2 rendered identical).
+   Red kept its rendered color, now baked in as solid #3d1c19. */
+[data-theme="dark"] .alert-level-box.l1,
+.bg-night .alert-level-box.l1,
+.bg-stormy .alert-level-box.l1,
+.bg-rainy .alert-level-box.l1 { background: #3d2c0e; border-color: rgba(245, 158, 11, 0.35); }
+[data-theme="dark"] .alert-level-box.l2,
+.bg-night .alert-level-box.l2,
+.bg-stormy .alert-level-box.l2,
+.bg-rainy .alert-level-box.l2 { background: #3d200b; border-color: rgba(249, 115, 22, 0.35); }
+[data-theme="dark"] .alert-level-box.l3,
+.bg-night .alert-level-box.l3,
+.bg-stormy .alert-level-box.l3,
+.bg-rainy .alert-level-box.l3 { background: #3d1c19; border-color: rgba(239, 68, 68, 0.35); }
+
+/* ═══════════════════════════════════════════════════════════════
+   VISIBILITY & THEME FIX LAYER (Admin)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Time range bar & pills ── */
+[data-theme="dark"] .time-range-bar {
+    background: rgba(28, 25, 23, 0.55);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+[data-theme="dark"] .range-pill {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: var(--stone-300);
+}
+[data-theme="dark"] .range-pill:hover {
+    background: rgba(255, 255, 255, 0.14);
+    color: var(--white);
+}
+/* Selected pill must stay visible on dark — same primary fill as day theme */
+[data-theme="dark"] .range-pill.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--white);
+    box-shadow: 0 6px 14px -4px rgba(21, 94, 117, 0.5);
+}
+[data-theme="dark"] .range-pill.active:hover {
+    background: var(--primary-dark);
+}
+[data-theme="dark"] .custom-date-label { color: rgba(255, 255, 255, 0.65); }
+[data-theme="dark"] .range-date-input {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.14);
+    color: var(--stone-100);
+    color-scheme: dark;
+}
+
+/* ── Hero banner details ── */
+[data-theme="dark"] .hero-sub-metric .sub-sep { color: rgba(255, 255, 255, 0.25); }
+[data-theme="dark"] .hero-banner-footer { border-top-color: rgba(255, 255, 255, 0.1); }
+[data-theme="dark"] .hero-map-btn { background: rgba(44, 95, 151, 0.16); color: var(--sky-300); }
+[data-theme="dark"] .hero-map-btn:hover { background: var(--primary); color: var(--white); }
+
+/* Icon tints on dark glass */
+[data-theme="dark"] .chip-icon.orange { color: var(--orange-400); }
+[data-theme="dark"] .chip-icon.cyan { color: #93c5fd; }
+[data-theme="dark"] .chip-icon.purple { color: var(--sky-400); }
+[data-theme="dark"] .chip-icon.yellow { color: #facc15; }
+[data-theme="dark"] .chip-icon.green { color: var(--emerald-400); }
+[data-theme="dark"] .chip-icon.indigo { color: var(--sky-400); }
+
+/* ── Forms / inputs / selects ── */
+[data-theme="dark"] select.input-control {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23a5b4fc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
+/* ── Tables ── */
+[data-theme="dark"] .fg-table td strong,
+.fg-table td strong { font-weight: 700; }
+[data-theme="dark"] .log-empty { color: rgba(255, 255, 255, 0.35); }
+
+/* ── SIM / response boxes ── */
+[data-theme="dark"] .response-box small { color: var(--stone-400); }
+[data-theme="dark"] .param-note { color: var(--stone-400); border-top-color: rgba(255, 255, 255, 0.06); }
+[data-theme="dark"] .warning-note { color: var(--amber-400); }
+[data-theme="dark"] .range-labels { color: var(--stone-400); }
+[data-theme="dark"] .range-input { background: rgba(255, 255, 255, 0.12); }
+
+/* ── Report rows & prediction params ── */
+[data-theme="dark"] .report-item { border-bottom-color: rgba(255, 255, 255, 0.06); }
+[data-theme="dark"] .prediction-params-list .param-row label { color: rgba(255, 255, 255, 0.45); }
+
+/* ── Alert-level threshold boxes (L1/L2/L3) text ── */
+[data-theme="dark"] .alert-level-box.l1 .alb-label,
+.bg-night .alert-level-box.l1 .alb-label,
+.bg-stormy .alert-level-box.l1 .alb-label,
+.bg-rainy .alert-level-box.l1 .alb-label { color: var(--amber-400); }
+[data-theme="dark"] .alert-level-box.l2 .alb-label,
+.bg-night .alert-level-box.l2 .alb-label,
+.bg-stormy .alert-level-box.l2 .alb-label,
+.bg-rainy .alert-level-box.l2 .alb-label { color: var(--orange-400); }
+[data-theme="dark"] .alert-level-box.l3 .alb-label,
+.bg-night .alert-level-box.l3 .alb-label,
+.bg-stormy .alert-level-box.l3 .alb-label,
+.bg-rainy .alert-level-box.l3 .alb-label { color: var(--red-300); }
+[data-theme="dark"] .alert-level-box.l1 .alb-pill,
+.bg-night .alert-level-box.l1 .alb-pill,
+.bg-stormy .alert-level-box.l1 .alb-pill,
+.bg-rainy .alert-level-box.l1 .alb-pill { color: #fde68a; }
+[data-theme="dark"] .alert-level-box.l2 .alb-pill,
+.bg-night .alert-level-box.l2 .alb-pill,
+.bg-stormy .alert-level-box.l2 .alb-pill,
+.bg-rainy .alert-level-box.l2 .alb-pill { color: var(--amber-200); }
+[data-theme="dark"] .alert-level-box.l3 .alb-pill,
+.bg-night .alert-level-box.l3 .alb-pill,
+.bg-stormy .alert-level-box.l3 .alb-pill,
+.bg-rainy .alert-level-box.l3 .alb-pill { color: var(--red-100); }
+
+/* ── Amenity tag chips ── */
+[data-theme="dark"] .amenity-tag-chip {
+    background: rgba(44, 95, 151, 0.15);
+    border-color: rgba(44, 95, 151, 0.3);
+    color: #93c5fd;
+}
+[data-theme="dark"] .chip-remove { color: #93c5fd; }
+[data-theme="dark"] .amenities-hint { color: var(--stone-500-2); }
+
+/* ── Threshold scale / gauge across all dark contexts ── */
+[data-theme="dark"] .threshold-scale { color: rgba(255, 255, 255, 0.45); }
+[data-theme="dark"] .threshold-bar { background: rgba(255, 255, 255, 0.1); }
+[data-theme="dark"] .threshold-marker { background: rgba(255, 255, 255, 0.4); }
+
+/* ── Skeletons across every dark context ── */
+[data-theme="dark"] .skeleton-hour,
+[data-theme="dark"] .skeleton-day {
+    background: linear-gradient(100deg, rgba(255,255,255,0.05) 40%, rgba(255,255,255,0.14) 50%, rgba(255,255,255,0.05) 60%);
+    background-size: 200% 100%;
+}
+
+/* ── Toast stays readable regardless of theme (already dark bg) ── */
+.toast-notification { border: 1px solid rgba(255, 255, 255, 0.12); }
+
+/* ═══════════════════════════════════════════════════════════════
+   DESIGN POLISH LAYER (Admin) — depth, glow, motion
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Sidebar ── */
+.desktop-sidebar {
+    background: var(--stone-800);
+    border-right: 1px solid rgba(255, 255, 255, 0.12);
+}
+.app-name {
+    color: var(--white);
+}
+.nav-item { position: relative; }
+.nav-item::before {
+    content: '';
+    position: absolute;
+    left: -1.25rem;
+    top: 20%;
+    bottom: 20%;
+    width: 3px;
+    border-radius: 100px;
+    background: var(--primary-dark);
+    opacity: 0;
+    transform: scaleY(0.4);
+    transition: opacity 0.25s var(--ease-glass), transform 0.25s var(--ease-glass);
+}
+.nav-item:hover::before { opacity: 0.6; transform: scaleY(1); }
+.nav-item.active::before { opacity: 1; transform: scaleY(1); }
+
+/* ── Hero banner ── */
+.hero-flood-banner::after {
+    content: '';
+    position: absolute;
+    top: -60%;
+    right: -10%;
+    width: 45%;
+    height: 160%;
+    background: radial-gradient(ellipse at center, rgba(44, 95, 151, 0.09) 0%, transparent 70%);
+    pointer-events: none;
+}
+.hero-value {
+    color: var(--stone-900);
+}
+[data-theme="dark"] .hero-value,
+.bg-night .hero-value,
+.bg-stormy .hero-value,
+.bg-rainy .hero-value {
+    color: var(--white);
+}
+
+/* Metric cards & chips hover */
+.hero-metric-box:hover { transform: translateY(-3px); }
+.weather-chip:hover { transform: translateY(-3px); }
+
+/* Icon pills inner highlight */
+.hero-icon-pill.teal,
+.hero-icon-pill.blue,
+.chip-icon.orange, .chip-icon.cyan, .chip-icon.purple,
+.chip-icon.yellow, .chip-icon.green, .chip-icon.indigo {
+}
+
+/* ── Buttons ── */
+.btn-glow, .csv-export-btn, #admin-export-report-btn {
+    transition: transform 0.2s var(--ease-glass), box-shadow 0.25s ease, filter 0.2s ease;
+}
+.btn-glow:hover, .csv-export-btn:hover {
+    filter: brightness(1.06);
+}
+
+/* ── Tables: refined row treatment ── */
+.fg-table tbody tr:hover td {
+    border-color: transparent;
+}
+
+/* ── Section entrance stagger ── */
+.view-section.active > * {
+    animation: sectionChildInAdmin 0.45s var(--ease-glass) both;
+}
+.view-section.active > *:nth-child(2) { animation-delay: 0.05s; }
+@keyframes sectionChildInAdmin {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .view-section.active > * { animation: none; }
+}
+
+/* ── Dark theme depth ── */
+[data-theme="dark"] .hero-flood-banner::after {
+    background: radial-gradient(ellipse at center, rgba(44, 95, 151, 0.08) 0%, transparent 70%);
+}
+[data-theme="dark"] .glass-card:hover,
+[data-theme="dark"] .metric-card-glass:hover {
+    border-color: rgba(44, 95, 151, 0.35);
+}
+
+/* ── Alert Command Center — responsive polish (any device) ────────── */
+@media (max-width: 720px) {
+    /* Level boxes breathe on small screens; send buttons become easy
+       thumb targets and stretch full-width. */
+    .alert-level-box {
+        padding: 12px 12px 12px 18px;
+        border-radius: 9px;
+        gap: 10px;
+    }
+    .alb-head {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .alb-pill {
+        align-self: flex-start;
+    }
+    .alb-send-btn {
+        width: 100%;
+        align-self: stretch;
+        padding: 12px 14px;
+        font-size: 0.82rem;
+        min-height: 46px;
+    }
+    .maint-cooldown-row .input-control {
+        width: 100%;
+        max-width: 140px;
+    }
+    .maint-apply-btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 380px) {
+    /* Very narrow phones: collapse the rain/water threshold pair to one column
+       so labels never truncate. */
+    .alb-threshold-grid {
+        grid-template-columns: 1fr;
+    }
+    .alert-command-panel .setting-desc {
+        font-size: 0.78rem;
+    }
+}
+/* ═══════════════════════════════════════════════════════════════
+   WARM & CALM CIVIC — Admin Console redesign layer
+   Mirrors the user dashboard: warm paper, friendly pills, clear
+   hierarchy. Appended last so it wins the cascade.
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+    --ca-card: var(--surface);
+    --ca-card-border: var(--hairline);
+    --ca-card-text: var(--ink-900);
+    --ca-card-muted: var(--ink-500);
+    --ca-brand-soft: rgba(44, 95, 151, 0.10);
+    --ca-level1-soft: rgba(245, 158, 11, 0.12);
+    --ca-warn-soft: rgba(217, 130, 24, 0.14);
+    --ca-danger-soft: rgba(207, 78, 62, 0.12);
+    --ca-safe-soft: rgba(62, 155, 110, 0.14);
+    --ca-input: var(--surface);
+}
+[data-theme="dark"] {
+    /* Solid warm charcoal — translucent rgba here lets the animated
+       weather background bleed through and stack on the cards */
+    --ca-card: var(--glass-dark-2);
+    --ca-card-border: var(--glass-dark-border);
+    --ca-card-text: var(--cream);
+    --ca-card-muted: var(--stone-400-2);
+    --ca-brand-soft: rgba(44, 95, 151, 0.22);
+    --ca-level1-soft: rgba(245, 158, 11, 0.16);
+    --ca-warn-soft: rgba(217, 130, 24, 0.18);
+    --ca-danger-soft: rgba(207, 78, 62, 0.20);
+    --ca-safe-soft: rgba(62, 155, 110, 0.18);
+    --ca-input: rgba(255, 253, 248, 0.05);
+}
+
+/* ── Sidebar ── */
+.desktop-sidebar {
+    background: var(--sidebar-dark);
+    border-right: 1px solid rgba(255, 241, 220, 0.10);
+    padding: 1.75rem 1rem;
+}
+.sidebar-header { margin-bottom: 2.25rem; }
+.app-name { font-family: var(--font-display); font-weight: 600; letter-spacing: 0; font-size: 1.35rem; }
+.logo-box { background: var(--primary); border-radius: 14px; box-shadow: 0 6px 14px -4px rgba(39, 83, 133, 0.55); }
+.nav-item {
+    color: var(--stone-400-2);
+    border-radius: 12px;
+    padding: 0.7rem 1rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.35rem;
+}
+.nav-item:hover { background: rgba(255, 255, 255, 0.07); color: var(--cream); transform: none; }
+.nav-item.active { background: var(--primary); color: var(--white); box-shadow: var(--shadow-glow); }
+.nav-item.active:hover { background: var(--primary-dark); color: var(--white); }
+.logout-link {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 241, 220, 0.10);
+    border-radius: 12px;
+    color: var(--stone-300-2);
+}
+.logout-link:hover { background: rgba(255, 255, 255, 0.10); color: var(--white); }
+
+/* ── Header & welcome ──
+   Phone header matches the user dashboard: solid warm paper, no glass —
+   translucent + backdrop-blur on dark is what triggered the stacking UI bug. */
+.view-header {
+    background: #fbf7ee;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-bottom: 1px solid var(--hairline);
+    padding: 0.85rem 1.75rem;
+}
+[data-theme="dark"] .view-header {
+    background: #1a1612;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-bottom-color: var(--glass-dark-border);
+}
+.welcome-section h1,
+.user-welcome { color: var(--ca-card-text); }
+.welcome-section h1 { font-family: var(--font-display); }
+[data-theme="dark"] .user-welcome { color: var(--ca-card-text); }
+.system-badge {
+    border-radius: 999px;
+    background: var(--ca-safe-soft);
+    color: var(--success-deep);
+    font-weight: 700;
+    border: 1px solid rgba(62, 155, 110, 0.22);
+}
+[data-theme="dark"] .system-badge {
+    background: rgba(62, 155, 110, 0.18);
+    color: var(--mint);
+    border-color: rgba(62, 155, 110, 0.32);
+}
+
+/* Status chip reacts to device state — green pill only while ONLINE.
+   Offline/unknown flips it to a red pill (text color comes from JS). */
+.system-badge.badge-online {
+    background: var(--ca-safe-soft);
+    border-color: rgba(62, 155, 110, 0.22);
+}
+[data-theme="dark"] .system-badge.badge-online {
+    background: rgba(62, 155, 110, 0.18);
+    border-color: rgba(62, 155, 110, 0.32);
+}
+.system-badge.badge-offline {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.35);
+}
+[data-theme="dark"] .system-badge.badge-offline {
+    background: rgba(239, 68, 68, 0.16);
+    border-color: rgba(248, 113, 113, 0.4);
+}
+
+/* ── Hero / command banner ── */
+.hero-flood-banner {
+    background: var(--ca-card);
+    border: 1px solid var(--ca-card-border);
+    border-radius: 22px;
+    box-shadow: var(--shadow-lg);
+    color: var(--ca-card-text);
+    padding: 1.75rem;
+}
+.hero-greeting-row h1 { font-family: var(--font-display); font-weight: 600; color: var(--ca-card-text); }
+.hero-status-subtitle,
+.hero-time-text { color: var(--ca-card-muted); }
+.hero-metric-box {
+    background: var(--ca-card);
+    border: 1px solid var(--ca-card-border);
+    border-radius: 18px;
+    box-shadow: var(--shadow-sm);
+}
+.hero-metric-box.water-focus { border-color: rgba(44, 95, 151, 0.28); }
+.hero-metric-box.rain-focus { border-color: rgba(207, 78, 62, 0.3); }
+.hero-value { color: var(--ca-card-text); }
+.hero-box-label { color: var(--ca-card-muted); }
+.hero-icon-pill { border-radius: 14px; }
+.hero-icon-pill.teal { background: var(--ca-brand-soft); color: var(--primary-dark); }
+.hero-icon-pill.orange { background: var(--ca-warn-soft); color: var(--amber-800); }
+.hero-icon-pill.red { background: var(--ca-danger-soft); color: #a13a2e; }
+.hero-icon-pill.green { background: var(--ca-safe-soft); color: var(--success-deep); }
+.hero-sub-metric .sub-val,
+.hero-location-info .loc-name { color: var(--ca-card-text); }
+.hero-sub-metric .loc-label,
+.hero-location-info .loc-label { color: var(--ca-card-muted); }
+
+/* ── Risk badges ── */
+.risk-badge {
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    font-size: 0.72rem;
+}
+.risk-badge.safe { background: var(--ca-safe-soft); color: var(--success-deep); border: 1px solid rgba(62, 155, 110, 0.25); }
+.risk-badge.warning { background: var(--ca-warn-soft); color: var(--amber-800); border: 1px solid rgba(217, 130, 24, 0.3); }
+.risk-badge.danger { background: var(--ca-danger-soft); color: #a13a2e; border: 1px solid rgba(207, 78, 62, 0.32); }
+.risk-badge.alert-level { background: var(--ca-brand-soft); color: var(--primary-dark); border: 1px solid rgba(44, 95, 151, 0.25); }
+[data-theme="dark"] .risk-badge.safe { color: var(--mint) !important; }
+[data-theme="dark"] .risk-badge.warning { color: var(--sand) !important; }
+[data-theme="dark"] .risk-badge.danger { color: #f09388 !important; }
+[data-theme="dark"] .risk-badge.alert-level { color: var(--sky-300) !important; }
+/* ── Weather chips ── */
+.weather-chip {
+    background: var(--ca-card);
+    border: 1px solid var(--ca-card-border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-xs);
+    transition: transform 0.18s var(--ease-glass), box-shadow 0.22s ease, border-color 0.2s ease;
+}
+.weather-chip:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); border-color: rgba(44, 95, 151, 0.22); }
+.weather-chip label { color: var(--ca-card-muted); font-weight: 700; }
+.chip-value { color: var(--ca-card-text); }
+.chip-value small { color: var(--ca-card-muted); }
+.chip-sub { color: var(--ca-card-muted); }
+.chip-sub strong { color: var(--ca-card-text); }
+.chip-icon { border-radius: 13px; }
+.chip-icon.blue, .chip-icon.indigo, .chip-icon.cyan,
+.chip-icon.purple, .chip-icon.teal { background: var(--ca-brand-soft); color: var(--primary-dark); }
+.chip-icon.orange, .chip-icon.yellow { background: var(--ca-warn-soft); color: var(--amber-800); }
+.chip-icon.green { background: var(--ca-safe-soft); color: var(--success-deep); }
+[data-theme="dark"] .chip-icon.blue, [data-theme="dark"] .chip-icon.indigo,
+[data-theme="dark"] .chip-icon.cyan, [data-theme="dark"] .chip-icon.purple,
+[data-theme="dark"] .chip-icon.teal { color: var(--sky-300); }
+[data-theme="dark"] .chip-icon.orange, [data-theme="dark"] .chip-icon.yellow { color: var(--sand); }
+[data-theme="dark"] .chip-icon.green { color: var(--mint); }
+
+/* ── Glass cards / panels: warm paper sheets ── */
+.glass-card,
+.panel-card,
+.table-card {
+    background: var(--ca-card) !important;
+    border: 1px solid var(--ca-card-border);
+    border-radius: 18px;
+    box-shadow: var(--shadow-sm);
+    color: var(--ca-card-text);
+    transition: transform 0.18s var(--ease-glass), box-shadow 0.22s ease, border-color 0.2s ease;
+}
+.glass-card:hover,
+.panel-card:hover,
+.table-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(44, 95, 151, 0.22);
+}
+.card-head h3,
+.panel-title h3 { color: var(--ca-card-text); font-family: var(--font-display); font-weight: 600; }
+.card-head i,
+.panel-title i { color: var(--primary); }
+.setting-desc,
+.field-hint,
+.block-hint { color: var(--ca-card-muted); }
+.metric-card-glass {
+    background: var(--ca-card);
+    border: 1px solid var(--ca-card-border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-xs);
+}
+.metric-icon-box.blue { background: var(--ca-brand-soft); color: var(--primary-dark); }
+.metric-icon-box.yellow { background: var(--ca-warn-soft); color: var(--amber-800); }
+.metric-icon-box.teal, .metric-icon-box.green { background: var(--ca-safe-soft); color: var(--success-deep); }
+.metric-icon-box.red { background: var(--ca-danger-soft); color: #a13a2e; }
+[data-theme="dark"] .metric-icon-box.blue { color: var(--sky-300); }
+[data-theme="dark"] .metric-icon-box.yellow { color: var(--sand); }
+[data-theme="dark"] .metric-icon-box.teal,
+[data-theme="dark"] .metric-icon-box.green { color: var(--mint); }
+.live-indicator {
+    border-radius: 999px;
+    background: var(--ca-safe-soft);
+    color: var(--success-deep);
+    font-weight: 800;
+    font-size: 0.7rem;
+    padding: 4px 10px;
+}
+[data-theme="dark"] .live-indicator { color: var(--mint); }
+
+/* Forecast location chip: long place names ellipsize instead of pushing
+   the card header wide on small screens. Full name via title tooltip. */
+#forecast-location-label {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 0 1 auto;
+}
+
+/* ── Forms & inputs: warm, friendly ── */
+.input-control,
+.settings-input,
+.form-group input,
+.form-group select,
+.form-group textarea {
+    background: var(--ca-input);
+    border: 1.5px solid var(--hairline);
+    border-radius: 12px;
+    color: var(--ca-card-text);
+    font-family: inherit;
+    font-size: 15px;
+}
+.input-control:focus,
+.settings-input:focus,
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: var(--primary);
+    box-shadow: var(--ring);
+    outline: none;
+    background: var(--ca-card);
+}
+.input-control::placeholder,
+.settings-input::placeholder { color: var(--ink-400); }
+.form-group label,
+.sub-label { color: var(--ca-card-muted); font-weight: 700; }
+select.input-control {
+    background-color: var(--ca-input);
+    color: var(--ca-card-text);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%232c5f97' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+input[type="range"].range-input { accent-color: var(--primary); }
+/* ── Buttons ── */
+.btn-glow {
+    background: var(--primary);
+    border-radius: 12px;
+    box-shadow: var(--shadow-glow);
+    font-weight: 700;
+    color: var(--white);
+}
+.btn-glow:hover { filter: brightness(1.06); transform: translateY(-1px); }
+.text-btn.boxed {
+    background: var(--ca-safe-soft);
+    border: 1px solid rgba(62, 155, 110, 0.3);
+    border-radius: 12px;
+    color: var(--success-deep);
+    font-weight: 700;
+}
+.text-btn.boxed:hover { background: rgba(62, 155, 110, 0.2); color: var(--success-deep); }
+[data-theme="dark"] .text-btn.boxed { color: var(--mint); }
+.card-info-btn {
+    background: rgba(70, 60, 48, 0.06);
+    border-radius: 10px;
+    color: var(--ca-card-muted);
+}
+[data-theme="dark"] .card-info-btn { background: rgba(255, 255, 255, 0.08); color: var(--ca-card-muted); }
+
+/* ── Tables ── */
+.table-card th {
+    background: rgba(70, 60, 48, 0.05);
+    color: var(--ca-card-muted);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.72rem;
+}
+.table-card td { color: var(--ca-card-text); }
+[data-theme="dark"] .table-card th { background: rgba(255, 255, 255, 0.06); }
+[data-theme="dark"] .table-card td { color: var(--ca-card-text); }
+
+/* ── Toggle / system-behavior controls ── */
+.maint-toggle-track { background: rgba(70, 60, 48, 0.18); }
+.maint-toggle-checkbox:checked + .maint-toggle-track { background: var(--primary); }
+.maint-toggle-text strong { color: var(--ca-card-text); }
+.maint-toggle-text small { color: var(--ca-card-muted); }
+
+/* ── Alert command panels: tiered soft fills ── */
+/* L1 (Advisory) uses its own amber tint — it previously reused
+   --ca-safe-soft (green), which read as a green box under the amber
+   "Level 1" label/pill. Distinct from L2's deeper warn-orange. */
+.alert-level-box.l1 { background: var(--ca-level1-soft, rgba(245, 158, 11, 0.12)); border-color: rgba(245, 158, 11, 0.28); }
+.alert-level-box.l2 { background: var(--ca-warn-soft); border-color: rgba(217, 130, 24, 0.3); }
+.alert-level-box.l3 { background: var(--ca-danger-soft); border-color: rgba(207, 78, 62, 0.32); }
+.alert-level-box label { color: var(--ca-card-muted); }
+[data-theme="dark"] .alert-level-box label { color: var(--ca-card-muted); }
+
+/* ── Logs ── */
+.logs-panel {
+    background: var(--ca-card);
+    border: 1px solid var(--ca-card-border);
+    border-radius: 16px;
+    /* Stretch with the grid row (default) so this card's bottom stays
+       aligned with the prediction card beside it. The dark log terminal
+       fills the body up to its own cap (see .log-list) and scrolls,
+       so the card never looks over-stretched. */
+    display: flex;
+    flex-direction: column;
+}
+.log-empty { color: var(--ca-card-muted); }
+.terminal-placeholder { color: var(--ca-card-muted); }
+
+/* ── Dark weather text fixes ── */
+[data-theme="dark"] .card-head h3,
+[data-theme="dark"] .panel-title h3 { color: var(--ca-card-text); }
+[data-theme="dark"] .setting-desc,
+[data-theme="dark"] .field-hint,
+[data-theme="dark"] .block-hint,
+[data-theme="dark"] .form-group label,
+[data-theme="dark"] .sub-label,
+[data-theme="dark"] .maint-toggle-text small { color: var(--ca-card-muted); }
+[data-theme="dark"] .input-control,
+[data-theme="dark"] .settings-input,
+[data-theme="dark"] .form-group input,
+[data-theme="dark"] .form-group select,
+[data-theme="dark"] .form-group textarea { color: var(--ca-card-text); }
+
+/* ── Configuration Guide Modal ── */
+.guide-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(15, 20, 30, 0.58);
+    animation: guideFadeIn 0.15s ease;
+}
+.guide-modal-overlay[hidden] { display: none !important; }
+.guide-modal {
+    width: min(680px, 100%);
+    max-height: 82vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--ca-card);
+    border: 1px solid var(--ca-card-border);
+    border-radius: 18px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+}
+.guide-modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--ca-card-border);
+    flex: none;
+}
+.guide-modal-head h3 {
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    color: var(--ca-card-text);
+    margin: 0;
+}
+.guide-modal-close {
+    flex: none;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid var(--ca-card-border);
+    background: transparent;
+    color: var(--ca-card-muted);
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.guide-modal-close:hover {
+    color: var(--ca-card-text);
+    background: var(--ca-warn-soft);
+}
+.guide-modal-body {
+    padding: 1.1rem 1.25rem 1.25rem;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    color: var(--ca-card-text);
+    font-size: 0.9rem;
+    line-height: 1.55;
+}
+.guide-modal-body h4 {
+    margin: 0 0 0.4rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+}
+.guide-modal-body h4:not(:first-child) { margin-top: 1rem; }
+.guide-modal-body ul {
+    margin: 0 0 0.25rem;
+    padding-left: 1.15rem;
+}
+.guide-modal-body li { margin-bottom: 0.3rem; }
+.guide-modal-body ul ul { margin-top: 0.3rem; }
+.guide-modal-body li.guide-rec {
+    margin-top: 6px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: rgba(44, 95, 151, 0.07);
+    border-left: 3px solid var(--primary);
+    list-style: none;
+    margin-left: -1.4rem;
+}
+.guide-modal-body li.guide-rec strong { color: var(--primary); }
+
+[data-theme="dark"] .guide-modal-body li.guide-rec,
+.bg-night .guide-modal-body li.guide-rec,
+.bg-stormy .guide-modal-body li.guide-rec,
+.bg-rainy .guide-modal-body li.guide-rec {
+    background: rgba(96, 165, 250, 0.08);
+    border-left-color: var(--sky-400);
+}
+[data-theme="dark"] .guide-modal-body li.guide-rec strong,
+.bg-night .guide-modal-body li.guide-rec strong,
+.bg-stormy .guide-modal-body li.guide-rec strong,
+.bg-rainy .guide-modal-body li.guide-rec strong { color: var(--sky-400); }
+[data-theme="dark"] .guide-modal-head h3,
+[data-theme="dark"] .guide-modal-body h4 { color: var(--sky-300); }
+@keyframes guideFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NO-GLASS MODE — final layer
+   Every surface is solid: no backdrop blur, no see-through panels.
+   ═══════════════════════════════════════════════════════════════ */
+*, *::before, *::after {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+[data-theme="dark"] .hero-flood-banner { background: var(--glass-dark-2); }
+
+/* ── Shelter status dropdown ──
+   The chevron lives in a wrapper span, NOT on the <select> itself. Baking the
+   arrow into the select's background makes Chromium re-render a native arrow
+   on top when the dropdown opens → "double/triple arrow". A static sibling
+   element stays exactly one chevron in every state. */
+.shelter-select-wrap {
+    position: relative;
+    width: 100%;
+}
+
+.shelter-select-wrap .shelter-select-status {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 2.4rem;
+    cursor: pointer;
+}
+
+.shelter-select-arrow {
+    position: absolute;
+    top: 50%;
+    right: 0.85rem;
+    transform: translateY(-50%);
+    width: 1.1rem;
+    height: 1.1rem;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%232c5f97' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    transition: background-image 0.15s ease;
+}
+[data-theme="dark"] .shelter-select-arrow {
+    /* Idle (dark mode): white so it's visible on the dark field */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+/* Active (focused / dropdown open) → match the input's focus outline color:
+   var(--primary) in light mode, var(--sky-400) (blue) in dark mode */
+.shelter-select-wrap:focus-within .shelter-select-arrow {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%232c5f97' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+[data-theme="dark"] .shelter-select-wrap:focus-within .shelter-select-arrow {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2360a5fa' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
+
+

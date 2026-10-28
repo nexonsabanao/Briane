@@ -1,0 +1,30 @@
+{
+  "name": "BRIANE: Flood Early Warning System",
+  "short_name": "BRIANE",
+  "description": "Barangay Rainfall Intelligence and Alert Network for Emergencies — Real-time flood monitoring and early warning system.",
+  "start_url": "./dashboard/index.html",
+  "display": "standalone",
+  "background_color": "#f6f2e9",
+  "theme_color": "#2c5f97",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "./assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/icon-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

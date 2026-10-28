@@ -1,0 +1,90 @@
+diff --git a/src/TinyGsmClientA76xxSSL.h b/src/TinyGsmClientA76xxSSL.h
+index 9c17cc3..a80bec1 100644
+--- a/src/TinyGsmClientA76xxSSL.h
++++ b/src/TinyGsmClientA76xxSSL.h
+@@ -144,6 +144,7 @@ class TinyGsmA76xxSSL : public TinyGsmA76xx<TinyGsmA76xxSSL>,
+         client_private_key(),
+         client_private_key_password() {
+     memset(sockets, 0, sizeof(sockets));
++    memset(peer_closed, 0, sizeof(peer_closed));
+   }
+ 
+   /*
+@@ -414,6 +415,7 @@ class TinyGsmA76xxSSL : public TinyGsmA76xx<TinyGsmA76xxSSL>,
+  protected:
+   bool sslConnect(const char* host, uint16_t port, uint8_t mux, bool ssl, int timeout_s) {
+     uint32_t timeout_ms = ((uint32_t)timeout_s) * 1000;
++    peer_closed[mux] = false;
+ 
+     /*
+     0 - The authentication mode, the default value is 0. no authentication.
+@@ -550,8 +552,7 @@ class TinyGsmA76xxSSL : public TinyGsmA76xx<TinyGsmA76xxSSL>,
+     if (waitResponse(GF(GSM_NL "+CCHSEND:")) != 1) { return 0; }
+     streamSkipUntil(',');  // Skip mux
+     // if (streamGetIntBefore(',') != 0) { return 0; }  // If result != success
+-    int write_bytes = streamGetIntBefore('\n') == 0 ? len : write_bytes;
+-    return write_bytes;
++    return streamGetIntBefore('\n') == 0 ? (int16_t)len : 0;
+   }
+ 
+   size_t sslRead(size_t size, uint8_t mux) {
+@@ -602,10 +603,14 @@ class TinyGsmA76xxSSL : public TinyGsmA76xx<TinyGsmA76xxSSL>,
+   size_t sslAvailable(uint8_t mux) {
+     // If the socket doesn't exist, just return
+     if (!sockets[mux]) { return 0; }
+-    // We need to check if there are any connections open *before* checking for
+-    // available characters.  The A76XX *will crash* if you ask about data
+-    // when there are no open connections.
+-    if (!modemGetConnected(mux)) { return 0; }
++    // Use the URC-maintained sock_connected flag instead of AT+CCHOPEN? —
++    // eliminates one round-trip per maintain() cycle during active data transfer.
++    // sock_connected is set true by sslConnect() and set false by the
++    // +CCH_PEER_CLOSED URC.
++    // NOTE: we must NOT bail out when the peer has closed: the A76XX still
++    // buffers received data in that state, and skipping the +CCHRECV? check
++    // here strands it (the client then reports a 0-byte response).
++    if (!sockets[mux]->sock_connected && !peer_closed[mux]) { return 0; }
+ 
+     // NOTE: This gets how many characters are available on all connections that
+     // have data.  It does not return all the connections, just those with data.
+@@ -696,6 +701,7 @@ class TinyGsmA76xxSSL : public TinyGsmA76xx<TinyGsmA76xxSSL>,
+   }
+ 
+   bool sslDisconnect(uint8_t mux) {
++    peer_closed[mux] = false;
+     sendAT(GF("+CCHCLOSE="), mux);
+     waitResponse(3000);
+     waitResponse(3000UL,GF("+CCHCLOSE:"),GF("ERROR"));
+@@ -924,14 +930,21 @@ class TinyGsmA76xxSSL : public TinyGsmA76xx<TinyGsmA76xxSSL>,
+         } else if (data.endsWith(GF("SIM REMOVED"))) {
+           data = "";
+           // TODO:
+-        } else if (data.endsWith(GF("+CCHEVENT: 0,RECV EVENT"))) {
++        } else if (data.endsWith(GF("+CCHEVENT:"))) {
++          // +CCHEVENT: <session_id>,RECV EVENT  (recv event: data-ready notification)
++          int8_t mux = streamGetIntBefore(',');
++          streamSkipUntil('\n');
++          if (mux >= 0 && mux < TINY_GSM_MUX_COUNT && sockets[mux]) {
++            sockets[mux]->got_data = true;
++          }
+           data = "";
+-          // TODO:
+         } else if (data.endsWith(GF("+CCH_PEER_CLOSED:"))) {
+           int8_t mux = streamGetIntBefore('\n');
+           if (mux >= 0 && mux < TINY_GSM_MUX_COUNT && sockets[mux]) {
++            peer_closed[mux]             = true;  // buffer may still hold data
++            sockets[mux]->got_data       = true;  // trigger one final read attempt
+             sockets[mux]->sock_connected = false;
+-            DBG("### Closed: ", mux);
++            DBG("### SSL peer closed:", mux);
+           }
+           data = "";
+         } else if (data.endsWith(GF("+WSDISC:"))) {
+@@ -1009,6 +1022,7 @@ class TinyGsmA76xxSSL : public TinyGsmA76xx<TinyGsmA76xxSSL>,
+   String             client_certificate[TINY_GSM_MUX_COUNT];
+   String             client_private_key_password[TINY_GSM_MUX_COUNT];
+   GsmClientConnType  connType[TINY_GSM_MUX_COUNT];
++  bool peer_closed[TINY_GSM_MUX_COUNT];  // set on +CCH_PEER_CLOSED; cleared on connect/disconnect
+   size_t             websocket_available_bytes;
+   websocket_cb_t     _websocket_cb;
+ };

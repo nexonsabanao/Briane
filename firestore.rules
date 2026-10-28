@@ -1,0 +1,126 @@
+rules_version = '2';
+
+// Firestore security rules for the BRIANE flood alert system — LOCKED-DOWN MODEL.
+//
+// Personas:
+//   device  — Firebase Auth account with custom claim { role: 'device' }.
+//             The ESP32 signs in via identitytoolkit REST and sends its idToken
+//             (Authorization: Bearer header on Firestore requests).
+//   admin   — users/{uid}.role == 'admin' (Firestore doc) AND/OR custom claim
+//             { role: 'admin' }. The doc check keeps admin working even before
+//             claims are set.
+//   user    — email-verified registered account. May manage own profile fields
+//             and bump weather/config.usersVersion (SMS recipient refresh).
+//   anon    — read-only: live config, history, sim status. Nothing else.
+//
+// Rollback: backups/firestore.rules.pre-lockdown restores the permissive model.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- Persona helpers -----------------------------------------------------
+    function isAdmin() {
+      return request.auth != null && (
+        // Custom claim (set by scripts/grant-roles.mjs) OR legacy Firestore doc role
+        request.auth.token.get('role', '') == 'admin'
+        || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      );
+    }
+
+    function isDevice() {
+      return request.auth != null
+        && request.auth.token.get('role', '') == 'device';
+    }
+
+    function isVerifiedUser() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    // --- Config backup & SIM status ------------------------------------------
+    // Read stays public: pre-login dashboard + registration pages render from it.
+    match /weather/config {
+      allow read: if true;
+      allow create, update: if isAdmin()
+        // Device may ONLY reset the manual SMS trigger back to false after firing.
+        || (isDevice()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['manualSmsTrigger'])
+            && request.resource.data.manualSmsTrigger == false)
+        // Device may ONLY consume the one-shot sensor data reset flag back to
+        // false after applying the admin's remote reset (same ack pattern).
+        || (isDevice()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['sensorResetTrigger'])
+            && request.resource.data.sensorResetTrigger == false)
+        // Verified users may ONLY advance usersVersion (monotonic) so their phone-number
+        // save triggers the firmware's recipient cache refresh without a Cloud Function.
+        || (isVerifiedUser()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['usersVersion'])
+            && request.resource.data.usersVersion is number
+            && (!('usersVersion' in resource.data)
+                || request.resource.data.usersVersion > resource.data.usersVersion));
+      allow delete: if isAdmin();
+    }
+
+    match /weather/sim {
+      allow read: if true;
+      allow write: if isAdmin() || isDevice();
+    }
+
+    match /weather/current {
+      // Live telemetry doc written by the firmware every cadence, and by the admin
+      // simulation panel. Read is public so the pre-login landing page can render it.
+      allow read: if true;
+      allow write: if isAdmin() || isDevice();
+    }
+
+    // Any other doc under /weather/* (e.g. the obsolete "current" mirror): denied.
+
+    // --- Emergency directory ---------------------------------------------------
+    // Admin-authored hotlines/shelters, read by every resident's dashboard
+    // (including pre-login views of the settings section).
+    match /systemConfig/emergencyDirectory {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // --- Historical readings ---------------------------------------------------
+    match /weather_history/{docId} {
+      allow read: if true;                 // dashboards chart history pre-login
+      allow create: if isDevice() || isAdmin();  // firmware telemetry + admin simulation push
+      allow update, delete: if isAdmin();
+    }
+
+    // --- System logs -------------------------------------------------------------
+    // Device SIM/error logs only. Anonymous client logging was removed together with
+    // these rules (failed-login entries now go to console instead of the DB), so an
+    // anonymous spammer can no longer flood the admin log feed or batch-delete budget.
+    match /logs/{logId} {
+      allow create: if isDevice() || isAdmin();
+      allow read, update, delete: if isAdmin();
+    }
+
+    // --- User profiles -----------------------------------------------------------
+    match /users/{userId} {
+      allow get: if request.auth != null && (
+        request.auth.uid == userId
+        || isAdmin()
+        // Firmware reads all profiles to build the SMS recipient list/cache.
+        || isDevice()
+      );
+      allow list: if isDevice() || isAdmin();
+
+      // Registration creates the caller's own doc as a plain user.
+      allow create: if request.auth != null
+                    && request.auth.uid == userId
+                    && request.resource.data.role == 'user';
+
+      allow update: if isAdmin()
+                    || (request.auth != null && request.auth.uid == userId
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['phoneNumber', 'isVerified']));
+      // Self-service account deletion (dashboard "Delete Account") or admin removal.
+      allow delete: if isAdmin()
+                    || (request.auth != null && request.auth.uid == userId);
+    }
+
+    // Everything else: deny by default (no rule = deny).
+  }
+}

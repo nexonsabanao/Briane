@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account | BRIANE</title>
+    <script>
+        // Apply persisted dark-weather theme to <html> BEFORE first paint so
+        // the splash screen never flashes white in night/stormy/rainy mode.
+        // body isn't parsed yet — use documentElement; background-manager.js
+        // keeps both elements in sync afterwards.
+        (function () {
+            try {
+                var raw = localStorage.getItem('briane_last_weather');
+                var dark = false;
+                if (raw) {
+                    var parsed = JSON.parse(raw);
+                    dark = !!parsed && ['night', 'stormy', 'rainy'].indexOf(parsed.type) !== -1;
+                }
+                if (dark) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                }
+            } catch (e) {}
+        })();
+    </script>
+    <link rel="icon" type="image/png" sizes="48x48" href="../assets/favicon-48.png">
+    <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+    <link rel="apple-touch-icon" href="../assets/icon-192.png">
+    <meta name="description" content="Create a BRIANE account to receive flood alerts for your barangay.">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="auth.css">
+    <link rel="stylesheet" href="../background/weather-backgrounds.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@1.43.0"></script>
+    <script src="../background/background-manager.js"></script>
+    <script src="../firebase-config.js"></script>
+</head>
+<body class="auth-page">
+    <!-- Background Container -->
+    <div class="weather-bg-container"></div>
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <!-- Registration guide trigger — same round info-button design as the
+                 admin config cards (Alert Command Center / System Behavior). -->
+            <div class="auth-topbar">
+                <button type="button" id="reg-guide-btn" class="auth-info-btn" title="How to Register and Verify Your BRIANE Account" aria-label="How to Register and Verify Your BRIANE Account">
+                    <i data-lucide="info"></i>
+                </button>
+            </div>
+
+            <div class="auth-logo">
+                <div class="brand-logo">
+                    <img src="../assets/icon.png" alt="Logo">
+                </div>
+            </div>
+            <h1 id="register-title">Create Account</h1>
+            <p id="register-desc">Join BRIANE to protect your community.</p>
+
+            <div id="error-msg" class="error-banner" style="display: none;"></div>
+
+            <!-- Step 1: Account Info Form -->
+            <form id="register-form">
+                <div id="account-info-section">
+                    <div class="input-group">
+                        <label for="reg-email">Email Address</label>
+                        <input type="email" id="reg-email" class="input-control" placeholder="name@example.com" required autofocus>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="reg-password">Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="reg-password" class="input-control has-toggle" placeholder="Min. 6 characters" required>
+                            <button type="button" class="toggle-password" data-target="reg-password" aria-label="Toggle password visibility">
+                                <i data-lucide="eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="confirm-password">Confirm Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="confirm-password" class="input-control has-toggle" placeholder="Repeat password" required>
+                            <button type="button" class="toggle-password" data-target="confirm-password" aria-label="Toggle password visibility">
+                                <i data-lucide="eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Terms of Service consent — gates the submit button below.
+                         Lives inside the step-1 section so it hides automatically
+                         once the form advances to the email-verification step. -->
+                    <div class="terms-consent">
+                        <div class="terms-consent-row">
+                            <input type="checkbox" id="terms-consent" class="terms-checkbox">
+                            <label for="terms-consent" class="terms-consent-label">I have read and agree to the</label>
+                            <button type="button" id="terms-btn" class="terms-consent-link">Terms of Service</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Email Verification Pending (Hidden) -->
+                <div id="verify-email-section" style="display: none;">
+                    <div class="verify-panel">
+                        <div class="verify-icon-ring">
+                            <i data-lucide="mail-check"></i>
+                        </div>
+                        <h3>Check your inbox!</h3>
+                        <p id="verify-email-sent-to" class="verify-subtitle">We sent a verification link to your email.</p>
+
+                        <!-- Spam notice box -->
+                        <div class="spam-notice">
+                            <i data-lucide="alert-triangle"></i>
+                            <p><strong>Can't find the email?</strong> Please check your <strong>Spam</strong> or <strong>Junk</strong> folder — our verification email sometimes ends up there.</p>
+                        </div>
+
+                        <p class="verify-hint">After clicking the link, come back here and press <strong>"I've Verified My Email"</strong>.</p>
+                    </div>
+
+                    <div class="verify-resend-row">
+                        <button type="button" id="resend-email-btn">Didn't receive it? Resend Email</button>
+                    </div>
+                </div>
+
+                <!-- Step 1 Submit — disabled until the Terms of Service checkbox is ticked -->
+                <button type="submit" id="send-verification-btn" class="btn-submit" disabled aria-disabled="true">
+                    <span class="btn-text">Create Account</span>
+                    <div class="loader"></div>
+                </button>
+
+                <!-- Step 2 Confirm -->
+                <button type="button" id="confirm-verified-btn" class="btn-submit" style="display: none;">
+                    <span class="btn-text">I've Verified My Email ✓</span>
+                    <div class="loader"></div>
+                </button>
+            </form>
+
+            <!-- Terms of Service consent lives above the Create Account button, inside
+             the step-1 section of the form. -->
+
+            <div class="auth-footer">
+                Already have an account? <a href="../index.html">Login here</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terms of Service Modal -->
+    <div id="terms-modal" class="terms-modal-overlay" hidden>
+        <div class="terms-modal" role="dialog" aria-modal="true" aria-labelledby="terms-modal-title">
+            <div class="terms-modal-head">
+                <div class="terms-modal-heading">
+                    <h2 id="terms-modal-title">Terms of Service</h2>
+                    <span class="terms-modal-date">Effective Date: October 2026</span>
+                </div>
+                <button type="button" id="terms-modal-close" class="terms-modal-close" aria-label="Close Terms of Service">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="terms-modal-body">
+                <p>Welcome to BRIANE (Barangay Rainfall Intelligence and Alert Notification for Emergencies). BRIANE is an SMS-based flood early warning system developed to monitor rainfall conditions, classify rainfall based on predefined mathematical thresholds, and provide alerts to registered users to support community preparedness.</p>
+
+                <p>By registering for or using the BRIANE System, you acknowledge and agree to the following Terms of Service.</p>
+
+                <h3>Purpose of BRIANE</h3>
+                <p>BRIANE is designed to provide rainfall-based information and SMS alerts that may help users become more aware of changing rainfall conditions and prepare for possible flooding.</p>
+                <p>The system is intended to support, not replace, official announcements, warnings, evacuation orders, and emergency instructions issued by the barangay, local government units, PAGASA, NDRRMC, or other authorized authorities.</p>
+
+                <h3>Registration and Account Information</h3>
+                <p>To use certain features of BRIANE, users may be required to register and provide information necessary for account creation and SMS notifications.</p>
+                <p>Users agree to:</p>
+                <ul>
+                    <li>Provide accurate and valid information during registration.</li>
+                    <li>Provide an active mobile number capable of receiving SMS messages.</li>
+                    <li>Keep their registration information updated when necessary.</li>
+                    <li>Use only their own registered account.</li>
+                    <li>Report incorrect account information or suspected unauthorized access to the system administrator or an authorized barangay representative.</li>
+                </ul>
+
+                <h3>Proper Use of the System</h3>
+                <p>Users agree to use BRIANE only for its intended purposes and must not:</p>
+                <ul>
+                    <li>Provide false or misleading registration information.</li>
+                    <li>Attempt to access restricted administrative features.</li>
+                    <li>Interfere with, damage, or disrupt the operation of the system.</li>
+                    <li>Attempt to gain unauthorized access to another user's account or information.</li>
+                    <li>Use the system to distribute false, harmful, or unauthorized information.</li>
+                </ul>
+                <p>Administrative functions and system configurations are restricted to authorized personnel.</p>
+
+                <h3>Rainfall Alerts</h3>
+                <p>BRIANE uses rainfall measurements and predefined rainfall thresholds to classify rainfall conditions and generate corresponding alerts.</p>
+                <p>The current rainfall classifications are:</p>
+
+                <table class="terms-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Alert Level</th>
+                            <th scope="col">Rainfall Intensity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Awareness</td>
+                            <td>7.5&ndash;15 mm/hr</td>
+                        </tr>
+                        <tr>
+                            <td>Preparedness</td>
+                            <td>&gt;15&ndash;30 mm/hr</td>
+                        </tr>
+                        <tr>
+                            <td>Response</td>
+                            <td>&gt;30 mm/hr</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p>These classifications are intended to provide early information for awareness and preparedness. They do not guarantee that flooding will or will not occur.</p>
+                <p>Users should remain attentive to their surroundings and follow official warnings and instructions when issued.</p>
+
+<h3>SMS Notifications</h3>
+                <p>BRIANE automatically sends SMS alerts when the system detects conditions that meet the programmed rainfall thresholds.</p>
+                <p>Successful and timely delivery of an SMS may depend on factors beyond the system's control, including mobile network availability, network congestion, device connectivity, power interruptions, and other technical conditions.</p>
+                <p>Therefore, BRIANE does not guarantee that every alert will be received immediately or successfully.</p>
+
+                <h3>System Limitations</h3>
+                <p>BRIANE is a research-based early warning system and may experience technical limitations, measurement errors, delays, interruptions, or equipment and communication failures.</p>
+                <p>Rainfall measurements alone may not account for all factors that contribute to flooding. Therefore:</p>
+                <ul>
+                    <li>The absence of a BRIANE alert does not mean that flooding will not occur.</li>
+                    <li>Receiving a BRIANE alert does not necessarily mean that flooding will occur in a user's exact location.</li>
+                    <li>BRIANE alerts should not be the sole basis for emergency or evacuation decisions.</li>
+                    <li>Users should always consider official advisories and instructions from authorized authorities.</li>
+                </ul>
+
+                <h3>System Availability</h3>
+                <p>The BRIANE Development Team will make reasonable efforts to maintain the system and its features. However, continuous or uninterrupted availability cannot be guaranteed.</p>
+                <p>The system may temporarily become unavailable because of maintenance, technical problems, power interruptions, sensor or hardware issues, network disruptions, or other circumstances beyond the team's control.</p>
+
+                <h3>Research and Evaluation</h3>
+                <p>BRIANE was developed as a research project to evaluate the functionality, accuracy, response time, and user-friendliness of an SMS-based flood early warning system using mathematical rainfall threshold models.</p>
+                <p>The system may undergo testing, evaluation, maintenance, and improvement as part of its research and development.</p>
+                <p>Any collection or processing of personal information is subject to the BRIANE Privacy Policy.</p>
+
+                <h3>Privacy</h3>
+                <p>Personal information collected through BRIANE may be used for account management, SMS notifications, system operation, and authorized research activities.</p>
+                <p>The collection, use, protection, and retention of personal information are explained in the BRIANE Privacy Policy.</p>
+
+                <h3>Changes to These Terms</h3>
+                <p>These Terms of Service may be updated when necessary to reflect changes to the BRIANE System, its features, procedures, or applicable requirements.</p>
+                <p>The updated version will indicate its effective date and will be made available through the BRIANE website.</p>
+
+                <h3>Contact Us</h3>
+                <p>For questions, concerns, or reports regarding the BRIANE System or these Terms of Service, you may contact:</p>
+                <div class="terms-contact">
+                    <p><strong>BRIANE System Administrator</strong><br>
+                        Email: <a href="mailto:brianeweatherproject@gmail.com">brianeweatherproject@gmail.com</a></p>
+                </div>
+
+                <h3>Acknowledgment</h3>
+                <p>By registering for or using BRIANE, you acknowledge that you have read and understood these Terms of Service and agree to use the system responsibly and for its intended purpose.</p>
+                <p>BRIANE provides supplementary rainfall-based alerts and does not replace official emergency warnings or instructions from authorized authorities.</p>
+
+                <!-- Sits at the very bottom of the scrollable content rather than
+                     in a pinned footer, so it only appears once the terms have
+                     been read through. -->
+                <div class="terms-modal-foot">
+                    <button type="button" id="terms-modal-accept" class="terms-modal-accept">I Understand</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How to Register and Verify Your BRIANE Account — Guide Modal -->
+    <div id="reg-guide-modal" class="guide-modal-overlay" hidden>
+        <div class="guide-modal" role="dialog" aria-modal="true" aria-labelledby="reg-guide-title">
+            <div class="guide-modal-head">
+                <h3 id="reg-guide-title">HOW TO REGISTER AND VERIFY YOUR BRIANE ACCOUNT</h3>
+                <button type="button" id="reg-guide-close" class="guide-modal-close" aria-label="Close registration guide">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="guide-modal-body">
+                <h4>1. Sign In or Create an Account</h4>
+                <p>If you already have an account, sign in by entering your registered email address and password. If you do not have an account, click &ldquo;Create One Now&rdquo; located at the lower-right portion of the sign-in page.</p>
+
+                <h4>2. Enter Your Account Information</h4>
+                <p>Provide the required personal information, including your email address and password. Make sure that the information you provide is accurate.</p>
+
+                <h4>3. Create Your Account</h4>
+                <p>Click &ldquo;Create Account &amp; Send Verification&rdquo; to submit your registration and request an account verification email.</p>
+
+                <h4>4. Check Your Email</h4>
+                <p>Open your Gmail account and check your Spam folder if the verification email does not appear in your inbox. Look for an email from BRIANE.</p>
+
+                <h4>5. Verify Your Email Address</h4>
+                <p>Open the BRIANE verification email and click the verification link provided. A confirmation message will appear indicating that your account has been successfully verified.</p>
+
+                <h4>6. Configure Your Mobile Number</h4>
+                <p>Return to the BRIANE System website and enter your mobile number. Make sure to provide an active and accessible mobile number, as this will be used to receive BRIANE SMS alerts.</p>
+
+                <h4>7. Start Using BRIANE</h4>
+                <p>Your account is now officially registered and verified as a recipient and user of the BRIANE System. You may now explore the available features and view the rainfall data and other information provided through the system interface.</p>
+            </div>
+        </div>
+    </div>
+    <script src="register.js"></script>
+</body>
+</html>

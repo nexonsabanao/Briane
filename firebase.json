@@ -1,0 +1,32 @@
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "hosting": {
+    "public": "Web UI",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "cleanUrls": false,
+    "trailingSlash": false,
+    "redirects": [
+      {
+        "source": "/dashboard",
+        "destination": "/dashboard/index.html",
+        "type": 301
+      },
+      {
+        "source": "/admin",
+        "destination": "/admin/index.html",
+        "type": 301
+      },
+      {
+        "source": "/admin/dashboard",
+        "destination": "/admin/dashboard.html",
+        "type": 301
+      }
+    ]
+  }
+}

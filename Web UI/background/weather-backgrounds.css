@@ -1,0 +1,503 @@
+/* ═══════════════════════════════════════════════════════════════
+   BRIANE — Realistic Dynamic Weather Backgrounds
+   Philippine climate-inspired, immersive & multi-layered
+   ═══════════════════════════════════════════════════════════════ */
+
+/* --- Container --- */
+.weather-bg-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    overflow: hidden;
+    transition: background 2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Shared pseudo-element base */
+.weather-bg-container::before,
+.weather-bg-container::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   ☀  SUNNY — Tropical Philippine Noon
+   Warm golden sky + volumetric sun + atmospheric haze
+   ═══════════════════════════════════════════════════════════ */
+.bg-sunny {
+    background:
+        /* High-altitude haze */
+        radial-gradient(ellipse 120% 60% at 50% 100%, rgba(255, 248, 230, 0.35) 0%, transparent 70%),
+        /* Atmospheric scatter — warm horizon */
+        linear-gradient(
+            to bottom,
+            #1a8fe3 0%,
+            #47a3eb 15%,
+            #6cb8f0 30%,
+            #8ecae6 50%,
+            #c8e4f5 70%,
+            #fce4b8 88%,
+            #f5c67a 100%
+        );
+}
+
+/* Sun disc with corona glow */
+.bg-sunny::before {
+    background:
+        /* Outer corona — very soft */
+        radial-gradient(circle at 78% 18%, rgba(255, 236, 179, 0.12) 0%, transparent 35%),
+        /* Mid glow — warm */
+        radial-gradient(circle at 78% 18%, rgba(255, 213, 79, 0.2) 0%, transparent 22%),
+        /* Inner bright glow */
+        radial-gradient(circle at 78% 18%, rgba(255, 241, 200, 0.5) 0%, transparent 12%),
+        /* Sun disc */
+        radial-gradient(circle at 78% 18%, #fffde7 0%, #fff9c4 3%, #fdd835 5%, transparent 5.5%);
+    animation: sunPulse 10s ease-in-out infinite alternate;
+}
+
+/* Light rays streaming from the sun */
+.bg-sunny::after {
+    background:
+        /* Crepuscular rays */
+        conic-gradient(
+            from 200deg at 78% 18%,
+            transparent 0deg,
+            rgba(255, 248, 220, 0.06) 5deg,
+            transparent 12deg,
+            rgba(255, 248, 220, 0.04) 20deg,
+            transparent 28deg,
+            rgba(255, 248, 220, 0.07) 35deg,
+            transparent 45deg,
+            rgba(255, 248, 220, 0.03) 55deg,
+            transparent 65deg,
+            rgba(255, 248, 220, 0.05) 80deg,
+            transparent 95deg,
+            rgba(255, 248, 220, 0.06) 120deg,
+            transparent 140deg,
+            rgba(255, 248, 220, 0.04) 160deg,
+            transparent 180deg,
+            rgba(255, 248, 220, 0.05) 200deg,
+            transparent 220deg,
+            rgba(255, 248, 220, 0.03) 260deg,
+            transparent 280deg,
+            rgba(255, 248, 220, 0.06) 310deg,
+            transparent 340deg,
+            transparent 360deg
+        );
+    transform-origin: 78% 18%;
+    animation: raysRotate 120s linear infinite;
+    mix-blend-mode: screen;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   ☁  CLOUDY — Overcast Philippine Afternoon
+   Layered grey tones + drifting cloud textures
+   ═══════════════════════════════════════════════════════════ */
+.bg-cloudy {
+    background:
+        /* Ground haze */
+        radial-gradient(ellipse 150% 50% at 50% 100%, rgba(176, 190, 197, 0.4) 0%, transparent 60%),
+        /* Sky gradient: steel-grey overcast */
+        linear-gradient(
+            175deg,
+            #78909c 0%,
+            #90a4ae 15%,
+            #a8b9c4 30%,
+            #b0bec5 50%,
+            #9eacb5 70%,
+            #7d8d97 90%,
+            #607d8b 100%
+        );
+}
+
+/* Cloud layer 1 — large, slow, foreground */
+.bg-cloudy::before {
+    background:
+        /* Big soft cloud blobs */
+        radial-gradient(ellipse 350px 120px at 20% 25%, rgba(255, 255, 255, 0.18) 0%, transparent 70%),
+        radial-gradient(ellipse 280px 100px at 60% 15%, rgba(255, 255, 255, 0.15) 0%, transparent 70%),
+        radial-gradient(ellipse 400px 130px at 85% 35%, rgba(255, 255, 255, 0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 320px 110px at 40% 55%, rgba(236, 239, 241, 0.14) 0%, transparent 70%),
+        radial-gradient(ellipse 380px 100px at 15% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 70%),
+        radial-gradient(ellipse 300px 90px at 70% 65%, rgba(255, 255, 255, 0.12) 0%, transparent 70%);
+    animation: cloudDrift 80s linear infinite;
+}
+
+/* Cloud layer 2 — smaller, faster, darker (depth) */
+.bg-cloudy::after {
+    background:
+        radial-gradient(ellipse 220px 80px at 30% 20%, rgba(176, 190, 197, 0.2) 0%, transparent 70%),
+        radial-gradient(ellipse 260px 90px at 75% 40%, rgba(176, 190, 197, 0.18) 0%, transparent 70%),
+        radial-gradient(ellipse 200px 70px at 10% 50%, rgba(176, 190, 197, 0.15) 0%, transparent 70%),
+        radial-gradient(ellipse 240px 85px at 55% 75%, rgba(176, 190, 197, 0.12) 0%, transparent 70%);
+    animation: cloudDrift 55s linear infinite reverse;
+    opacity: 0.8;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   🌧  RAINY — Heavy Philippine Monsoon (Habagat)
+   Dark moody sky + atmospheric fog (rain via canvas particles)
+   ═══════════════════════════════════════════════════════════ */
+.bg-rainy {
+    background:
+        /* Ground moisture / mist */
+        radial-gradient(ellipse 140% 35% at 50% 105%, rgba(144, 164, 174, 0.25) 0%, transparent 70%),
+        /* Dark monsoon sky */
+        linear-gradient(
+            to bottom,
+            #1a2a32 0%,
+            #1e3a44 20%,
+            #234e5c 40%,
+            #2a5d6e 55%,
+            #2c5364 70%,
+            #253d47 90%,
+            #1a2e36 100%
+        );
+}
+
+/* Atmospheric fog layer — drifting mist */
+.bg-rainy::before {
+    background:
+        radial-gradient(ellipse 400px 150px at 15% 60%, rgba(144, 164, 174, 0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 350px 120px at 70% 40%, rgba(144, 164, 174, 0.1) 0%, transparent 70%),
+        radial-gradient(ellipse 500px 160px at 45% 80%, rgba(176, 190, 197, 0.08) 0%, transparent 70%);
+    animation: cloudDrift 60s linear infinite;
+}
+
+/* Low cloud cover — darker wisps */
+.bg-rainy::after {
+    background:
+        radial-gradient(ellipse 300px 100px at 25% 30%, rgba(38, 50, 56, 0.15) 0%, transparent 70%),
+        radial-gradient(ellipse 450px 130px at 80% 25%, rgba(38, 50, 56, 0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 350px 110px at 55% 50%, rgba(55, 71, 79, 0.1) 0%, transparent 70%);
+    animation: cloudDrift 45s linear infinite reverse;
+    opacity: 0.7;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   🌙  NIGHT — Clear Philippine Night Sky
+   Deep blue-black sky + stars + moon glow + ambient light
+   ═══════════════════════════════════════════════════════════ */
+.bg-night {
+    background:
+        /* City glow on horizon */
+        radial-gradient(ellipse 120% 30% at 50% 105%, rgba(30, 58, 95, 0.3) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 20% at 30% 102%, rgba(255, 167, 38, 0.06) 0%, transparent 50%),
+        /* Deep night sky */
+        radial-gradient(
+            ellipse 100% 100% at 50% 0%,
+            #0a0e1a 0%,
+            #0d1321 30%,
+            #111b2e 50%,
+            #152238 70%,
+            #1a2d4a 100%
+        );
+}
+
+/* Stars + Moon */
+.bg-night::before {
+    background:
+        /* Moon glow outer */
+        radial-gradient(circle at 25% 20%, rgba(200, 220, 255, 0.06) 0%, transparent 18%),
+        /* Moon glow inner */
+        radial-gradient(circle at 25% 20%, rgba(220, 230, 255, 0.15) 0%, transparent 8%),
+        /* Moon disc */
+        radial-gradient(circle at 25% 20%, #e8eef5 0%, #d0dae8 2.5%, transparent 3%),
+        /* Stars — various sizes and intensities */
+        radial-gradient(1.5px 1.5px at 10% 15%, #ffffff 50%, transparent 100%),
+        radial-gradient(1px 1px at 25% 8%, #e0e0e0 50%, transparent 100%),
+        radial-gradient(2px 2px at 45% 12%, #ffffff 50%, transparent 100%),
+        radial-gradient(1px 1px at 60% 5%, #cccccc 50%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 75% 22%, #ffffff 50%, transparent 100%),
+        radial-gradient(1px 1px at 88% 10%, #e0e0e0 50%, transparent 100%),
+        radial-gradient(1px 1px at 15% 35%, #dddddd 50%, transparent 100%),
+        radial-gradient(2px 2px at 35% 28%, #ffffff 50%, transparent 100%),
+        radial-gradient(1px 1px at 55% 40%, #cccccc 50%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 70% 32%, #ffffff 50%, transparent 100%),
+        radial-gradient(1px 1px at 92% 38%, #e0e0e0 50%, transparent 100%),
+        radial-gradient(1px 1px at 5% 52%, #dddddd 50%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 20% 60%, #ffffff 50%, transparent 100%),
+        radial-gradient(1px 1px at 40% 55%, #cccccc 50%, transparent 100%),
+        radial-gradient(2px 2px at 65% 48%, #ffffff 50%, transparent 100%),
+        radial-gradient(1px 1px at 80% 58%, #e0e0e0 50%, transparent 100%),
+        radial-gradient(1px 1px at 50% 70%, #dddddd 50%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 30% 75%, #ffffff 50%, transparent 100%),
+        radial-gradient(1px 1px at 85% 72%, #cccccc 50%, transparent 100%),
+        radial-gradient(1px 1px at 95% 65%, #e0e0e0 50%, transparent 100%);
+    animation: starsTwinkle 6s ease-in-out infinite alternate;
+}
+
+/* Subtle atmospheric shimmer */
+.bg-night::after {
+    background:
+        radial-gradient(ellipse 80% 30% at 50% 0%, rgba(100, 140, 200, 0.03) 0%, transparent 100%);
+    animation: nightGlow 12s ease-in-out infinite alternate;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   ⛈  STORMY — Philippine Typhoon (Bagyo)
+   Near-black sky + violent rain + lightning flashes
+   ═══════════════════════════════════════════════════════════ */
+.bg-stormy {
+    background:
+        /* Eerie green-grey underlighting */
+        radial-gradient(ellipse 100% 40% at 50% 100%, rgba(55, 71, 79, 0.3) 0%, transparent 60%),
+        /* Turbulent dark sky */
+        linear-gradient(
+            170deg,
+            #0a0f12 0%,
+            #111a1f 15%,
+            #1a252c 30%,
+            #151e24 50%,
+            #0d1418 70%,
+            #0a0f12 100%
+        );
+}
+
+/* Lightning flash layer (rain handled by canvas particles) */
+.bg-stormy::before {
+    animation: lightningFlash 6s ease-out infinite;
+}
+
+/* Swirling cloud layer with green undertone */
+.bg-stormy::after {
+    background:
+        /* Turbulent cloud formations */
+        radial-gradient(ellipse 500px 180px at 20% 30%, rgba(38, 50, 56, 0.5) 0%, transparent 70%),
+        radial-gradient(ellipse 400px 150px at 70% 20%, rgba(38, 50, 56, 0.4) 0%, transparent 70%),
+        radial-gradient(ellipse 600px 200px at 50% 45%, rgba(33, 33, 33, 0.3) 0%, transparent 70%),
+        /* Eerie green-grey tint (typhoon signature) */
+        radial-gradient(ellipse 100% 60% at 50% 50%, rgba(69, 90, 100, 0.08) 0%, transparent 70%);
+    animation: stormClouds 30s ease-in-out infinite alternate;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   🎬  ANIMATIONS
+   ═══════════════════════════════════════════════════════════ */
+
+/* Sunny */
+@keyframes sunPulse {
+    0%   { opacity: 0.85; filter: brightness(0.95); }
+    100% { opacity: 1;    filter: brightness(1.05); }
+}
+
+@keyframes raysRotate {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+/* Cloudy */
+@keyframes cloudDrift {
+    0%   { transform: translateX(-8%); }
+    100% { transform: translateX(8%); }
+}
+
+/* Night */
+@keyframes starsTwinkle {
+    0%   { opacity: 0.5; }
+    30%  { opacity: 0.8; }
+    60%  { opacity: 0.55; }
+    100% { opacity: 1; }
+}
+
+@keyframes nightGlow {
+    0%   { opacity: 0.3; }
+    100% { opacity: 0.7; }
+}
+
+@keyframes lightningFlash {
+    0%   { background-color: transparent; }
+    92%  { background-color: transparent; }
+    93%  { background-color: rgba(200, 220, 255, 0.35); }
+    94%  { background-color: transparent; }
+    96%  { background-color: rgba(180, 200, 240, 0.2); }
+    97%  { background-color: transparent; }
+    98%  { background-color: rgba(200, 220, 255, 0.12); }
+    100% { background-color: transparent; }
+}
+
+@keyframes stormClouds {
+    0%   { transform: translateX(-3%) scale(1); }
+    50%  { transform: translateX(2%) scale(1.02); }
+    100% { transform: translateX(-1%) scale(1); }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   ♿  REDUCED MOTION — respect user preferences
+   ═══════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+    .weather-bg-container,
+    .weather-bg-container::before,
+    .weather-bg-container::after {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+/* ═══════════════════════════════════════════════════════════════
+   WARM & CALM — background override layer
+   Replaces the vivid, immersive skies with soft warm gradients so the
+   UI feels calm and humane. The JS class-switching and the
+   `data-theme` mirroring are untouched — this only restyles how each
+   .bg-* theme *looks*. Rain/storm particles (canvas) still render.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Soft clear day — bright blue sky with a golden horizon so it is
+   clearly distinguishable from overcast weather */
+.bg-sunny {
+    background: linear-gradient(180deg,
+        #6fb4e6 0%,
+        #97c8ec 20%,
+        #c1dcf3 42%,
+        #e6e0c6 70%,
+        #f5dda4 100%);
+}
+.bg-sunny::before {
+    /* Volumetric sun glow, clearly visible in the upper sky */
+    background: radial-gradient(circle at 78% 14%,
+        rgba(255, 252, 230, 0.95) 0%,
+        rgba(255, 232, 150, 0.55) 9%,
+        rgba(255, 214, 92, 0.28) 22%,
+        transparent 45%);
+    animation: sunPulse 12s ease-in-out infinite alternate;
+}
+.bg-sunny::after {
+    /* Soft crepuscular rays shimmering around the sun — animated with
+       opacity only, so no layer edge can ever rotate into view */
+    background: conic-gradient(
+        from 200deg at 78% 14%,
+        transparent 0deg, rgba(255, 248, 220, 0.10) 6deg, transparent 13deg,
+        rgba(255, 248, 220, 0.07) 22deg, transparent 30deg,
+        rgba(255, 248, 220, 0.12) 38deg, transparent 47deg,
+        rgba(255, 248, 220, 0.06) 58deg, transparent 70deg,
+        rgba(255, 248, 220, 0.09) 85deg, transparent 100deg,
+        rgba(255, 248, 220, 0.05) 130deg, transparent 360deg);
+    mix-blend-mode: screen;
+    animation: raysShimmer 9s ease-in-out infinite alternate;
+}
+
+/* ── Real cloud movement, edge-safe ──
+   Drifting layers are stretched 30% wider than the screen (left/right
+   -15%). cloudDrift moves them ±8% of their own width (~±10% of the
+   viewport), which stays inside the buffer — so clouds genuinely
+   slide across the sky like a real weather app, but a painted edge
+   can never be exposed at the sides. */
+.bg-cloudy::before, .bg-cloudy::after,
+.bg-rainy::before, .bg-rainy::after,
+.bg-stormy::after {
+    left: -15%;
+    right: -15%;
+}
+
+/* Overcast — grey sky with big, slow, genuinely drifting cloud banks */
+.bg-cloudy {
+    background: linear-gradient(180deg,
+        #a7abb3 0%,
+        #bcc0c4 28%,
+        #ced0cf 58%,
+        #dcd4c2 100%);
+}
+.bg-cloudy::before {
+    /* Bright upper cloud bank */
+    background:
+        radial-gradient(ellipse 640px 200px at 25% 14%, rgba(255, 255, 255, 0.5) 0%, transparent 70%),
+        radial-gradient(ellipse 720px 230px at 62% 26%, rgba(255, 255, 255, 0.4) 0%, transparent 70%),
+        radial-gradient(ellipse 820px 240px at 88% 8%, rgba(255, 255, 255, 0.3) 0%, transparent 72%);
+    animation: cloudDrift 75s linear infinite;
+}
+.bg-cloudy::after {
+    /* Lower grey wisps drifting the other way for depth */
+    background:
+        radial-gradient(ellipse 580px 180px at 15% 55%, rgba(255, 255, 255, 0.24) 0%, transparent 70%),
+        radial-gradient(ellipse 660px 190px at 55% 68%, rgba(116, 121, 130, 0.16) 0%, transparent 72%),
+        radial-gradient(ellipse 540px 160px at 92% 45%, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+    animation: cloudDrift 50s linear infinite reverse;
+    opacity: 0.85;
+}
+
+/* Sun-ray shimmer */
+@keyframes raysShimmer {
+    0%   { opacity: 0.4; }
+    100% { opacity: 0.9; }
+}
+
+/* Night — deep blue-black night sky, calm.
+   Re-tuned from the previous warm brown so it reads as an actual
+   night sky and stays clearly distinct from rainy/stormy. */
+.bg-night {
+    background: linear-gradient(180deg,
+        #14181f 0%,
+        #171d27 48%,
+        #1c2432 82%,
+        #232c3d 100%);
+}
+.bg-night::before {
+    /* Soft cool horizon glow — distant city light / moonlight */
+    background:
+        radial-gradient(ellipse 100% 34% at 50% 104%, rgba(90, 140, 200, 0.16) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 18% at 30% 102%, rgba(255, 190, 110, 0.07) 0%, transparent 60%);
+    animation: nightGlow 14s ease-in-out infinite alternate;
+}
+.bg-night::after {
+    background: transparent;
+    animation: none;
+}
+
+/* Rainy — cool wet blue-grey monsoon (canvas rain draws on top).
+   Shifted from warm charcoal to a blue-leaning wet tone so it is
+   distinguishable from both night and stormy. */
+.bg-rainy {
+    background: linear-gradient(180deg,
+        #222b31 0%,
+        #28343c 55%,
+        #2b3841 100%);
+}
+.bg-rainy::before {
+    /* Rolling monsoon mist drifting across the sky */
+    background:
+        radial-gradient(ellipse 700px 220px at 20% 40%, rgba(144, 164, 174, 0.14) 0%, transparent 70%),
+        radial-gradient(ellipse 640px 200px at 60% 25%, rgba(144, 164, 174, 0.1) 0%, transparent 70%),
+        radial-gradient(ellipse 780px 230px at 88% 65%, rgba(176, 190, 197, 0.08) 0%, transparent 70%);
+    animation: cloudDrift 65s linear infinite;
+}
+.bg-rainy::after {
+    /* Dark low cloud wisps sliding the opposite way */
+    background:
+        radial-gradient(ellipse 560px 180px at 30% 20%, rgba(38, 50, 56, 0.2) 0%, transparent 70%),
+        radial-gradient(ellipse 680px 210px at 75% 35%, rgba(38, 50, 56, 0.16) 0%, transparent 70%);
+    animation: cloudDrift 48s linear infinite reverse;
+    opacity: 0.8;
+}
+
+/* Stormy — near-black with a cold violet-grey note, grounded and
+   calm (no harsh flashing). Hue-separated from rainy's blue-grey. */
+.bg-stormy {
+    background: linear-gradient(180deg,
+        #121016 0%,
+        #1a171f 55%,
+        #211d26 100%);
+}
+.bg-stormy::before {
+    /* Cold violet under-glow and pale storm light overhead */
+    background:
+        radial-gradient(ellipse 80% 35% at 50% 104%, rgba(110, 100, 140, 0.14) 0%, transparent 70%),
+        radial-gradient(ellipse 70% 28% at 50% 0%, rgba(140, 150, 175, 0.08) 0%, transparent 70%);
+    animation: nightGlow 9s ease-in-out infinite alternate;
+}
+.bg-stormy::after {
+    /* Heavy storm cloud shadows sliding overhead */
+    background:
+        radial-gradient(ellipse 720px 240px at 25% 22%, rgba(255, 250, 240, 0.05) 0%, transparent 70%),
+        radial-gradient(ellipse 780px 250px at 70% 14%, rgba(255, 250, 240, 0.04) 0%, transparent 70%);
+    animation: cloudDrift 40s linear infinite alternate;
+}

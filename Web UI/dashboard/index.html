@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
+    <script>
+        /* ── Cross-browser mobile viewport height normalization ──
+           Keeps the app shell exactly as tall as the *visible* screen on
+           every browser/engine (dynamic toolbars, safe areas, keyboard).
+           Sets --app-height, consumed by dashboard.css height chains. */
+        (function () {
+            var set = function () {
+                document.documentElement.style.setProperty(
+                    '--app-height', window.innerHeight + 'px');
+            };
+            set();
+            window.addEventListener('resize', set);
+            window.addEventListener('orientationchange', set);
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', set);
+            }
+        })();
+    </script>
+    <script>
+        // Apply persisted dark-weather theme to <html> BEFORE first paint so
+        // the splash screen never flashes white in night/stormy/rainy mode.
+        // body isn't parsed yet — use documentElement; background-manager.js
+        // keeps both elements in sync afterwards.
+        (function () {
+            try {
+                var raw = localStorage.getItem('briane_last_weather');
+                var dark = false;
+                if (raw) {
+                    var parsed = JSON.parse(raw);
+                    dark = !!parsed && ['night', 'stormy', 'rainy'].indexOf(parsed.type) !== -1;
+                }
+                if (dark) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                }
+            } catch (e) {}
+        })();
+    </script>
+    <title>BRIANE — Flood Alert Dashboard</title>
+    <link rel="icon" type="image/png" sizes="48x48" href="../assets/favicon-48.png">
+    <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#2c5f97">
+    <meta name="description" content="BRIANE live dashboard — river/canal water level, cumulative rainfall, and AI flood risk alerts.">
+<meta property="og:title" content="BRIANE Dashboard — Flood Alerts">
+<meta property="og:description" content="Real-time sensor monitoring and flood warnings for your barangay.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://weather-project-a5fb5.web.app/assets/icon-512.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="BRIANE">
+    <link rel="apple-touch-icon" href="../assets/icon-192.png">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="../background/weather-backgrounds.css">
+    <link rel="stylesheet" href="../vendor/leaflet/leaflet.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@1.43.0"></script>
+    <script src="../vendor/leaflet/leaflet.js"></script>
+    <script src="../background/background-manager.js"></script>
+    <script src="../background/chart-theme.js"></script>
+    <script src="../firebase-config.js"></script>
+</head>
+<body class="user-dashboard">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <!-- Splash Screen -->
+    <div id="splash-screen" class="splash-screen">
+        <div class="splash-logo-box">
+            <img src="../assets/icon.png" alt="BRIANE Logo">
+        </div>
+        <h2 class="splash-title text-gradient">BRIANE</h2>
+        <p class="splash-tagline">Your barangay's friendly flood early-warning companion — keeping you informed, rain or shine.</p>
+        <div class="splash-loader"><div class="splash-loader-inner"></div></div>
+    </div>
+
+    <script>
+        // Real progress bar: width is driven by actual loading milestones via
+        // window.SplashBar.set(pct) — 0 → 25 → 75 → 100. Monotonic (never
+        // regresses); fill() fires when the page is genuinely ready and page
+        // scripts remove the splash.
+        (function () {
+            const bar = document.querySelector('.splash-loader-inner');
+            let pct = 0;
+            if (bar) bar.style.width = '0%';
+            window.SplashBar = {
+                set: function (v) {
+                    if (v <= pct) return;
+                    pct = Math.max(0, Math.min(100, v));
+                    if (bar) bar.style.width = pct + '%';
+                },
+                fill: function () { window.SplashBar.set(100); }
+            };
+            // Crash net: if a page script below hard-crashes, fill + fade the
+            // splash so the user is never stuck on the loading screen.
+            setTimeout(function () {
+                if (window.SplashBar) window.SplashBar.fill();
+                // Wait for the 100% fill transition to finish before fading.
+                var fillWait = bar
+                    ? (parseFloat(getComputedStyle(bar).transitionDuration) || 0.45) * 1000 + 60
+                    : 510;
+                setTimeout(function () {
+                    const splash = document.getElementById('splash-screen');
+                    if (splash) {
+                        splash.style.opacity = '0';
+                        setTimeout(function () { splash.remove(); }, 400);
+                    }
+                }, fillWait);
+            }, 6000);
+        })();
+    </script>
+
+    <div class="app-layout">
+        <!-- Sidebar for Desktop -->
+        <aside class="desktop-sidebar">
+            <div class="sidebar-header">
+                <div class="logo-box">
+                    <img src="../assets/icon.png" alt="Logo">
+                </div>
+                <span class="app-name">BRIANE</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-section="home">
+                    <i data-lucide="layout-grid"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-section="analytics">
+                    <i data-lucide="bar-chart-2"></i>
+                    <span>Detailed Trends</span>
+                </a>
+                <a href="#" class="nav-item" data-section="forecast">
+                    <i data-lucide="calendar-days"></i>
+                    <span>7-Day Forecast</span>
+                </a>
+                <a id="map-link-sidebar" href="#" class="nav-item" data-section="livemap">
+                    <i data-lucide="map-pin"></i>
+                    <span>Live Map</span>
+                </a>
+                <a href="#" class="nav-item" data-section="emergency">
+                    <i data-lucide="phone-call"></i>
+                    <span>Emergency Directory</span>
+                </a>
+                <a href="#" class="nav-item" data-section="settings">
+                    <i data-lucide="settings"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer-actions">
+                <button class="logout-link logout-trigger">
+                    <i data-lucide="log-out"></i>
+                    <span>Sign Out</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="content-view" id="main-content">
+            <!-- New Minimal Header -->
+            <header class="view-header">
+                <div class="header-left">
+                    <div class="mobile-logo-box">
+                        <img src="../assets/icon.png" alt="Logo">
+                    </div>
+                    <span class="mobile-brand">BRIANE</span>
+                </div>
+                <div class="header-right">
+                    <button id="pwa-notif-btn" class="header-icon-btn notif-toggle-btn" title="Enable Flood Alert Push Notifications">
+                        <i data-lucide="bell"></i>
+                    </button>
+                    <div class="system-status-pill" id="system-status-container">
+                        <div id="system-status-dot" class="pulse-dot"></div>
+                        <span id="system-status-text">...</span>
+                    </div>
+                    <button class="header-icon-btn logout-trigger" title="Sign Out" aria-label="Sign Out">
+                        <i data-lucide="log-out" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </header>
+
+            <div class="scroll-area">
+                <!-- Home Section -->
+                <div id="section-home" class="dashboard-section active">
+                    <!-- Web Push Notification Banner -->
+                    <div id="push-notif-banner" class="push-notif-banner" style="display: none;">
+                        <div class="push-notif-icon">
+                            <i data-lucide="bell-ring"></i>
+                        </div>
+                        <div class="push-notif-text">
+                            <strong>Enable Instant Flood Warning Alerts</strong>
+                            <p>Receive immediate popup alerts on your screen when river water levels or rainfall reach danger thresholds.</p>
+                        </div>
+                        <div class="push-notif-actions">
+                            <button id="push-notif-enable-btn" class="push-btn primary">Enable</button>
+                            <button id="push-notif-dismiss-btn" class="push-btn secondary"><i data-lucide="x"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Phone Number Unconfigured Alert Banner -->
+                    <div id="phone-warning-banner" class="phone-alert-banner" style="display: none;">
+                        <div class="phone-alert-content">
+                            <div class="phone-alert-icon">
+                                <i data-lucide="phone-off"></i>
+                            </div>
+                            <div class="phone-alert-text">
+                                <strong>Emergency Phone Number Required!</strong>
+                                <p>You haven't configured a valid phone number yet. Please set your correct phone number with country code (e.g., +639123456789) to receive life-saving flood SMS alerts.</p>
+                            </div>
+                        </div>
+                        <button id="phone-alert-action-btn" class="phone-alert-btn">
+                            <i data-lucide="settings"></i> Configure Now
+                        </button>
+                    </div>
+
+                    <!-- ══════════════════════════════════════════════════ -->
+                    <!-- EMERGENCY QUICK STRIP (visible when risk elevated) -->
+                    <!-- ══════════════════════════════════════════════════ -->
+                    <div id="emergency-quick-strip" class="emergency-quick-strip" style="display: none;">
+                        <div class="eqs-icon"><i data-lucide="siren"></i></div>
+                        <div class="eqs-text">
+                            <strong>Flood emergency protocols active</strong>
+                            <p>Call responders or proceed to the nearest open evacuation center now.</p>
+                        </div>
+                        <div class="eqs-actions">
+                            <a id="eqs-hotline-link" href="tel:911" class="eqs-call-btn">
+                                <i data-lucide="phone"></i>
+                                <span id="eqs-hotline-label">Emergency Call</span>
+                            </a>
+                            <a href="#" data-goto-section="emergency" class="eqs-dir-btn">
+                                <i data-lucide="map-pin"></i>
+                                <span id="eqs-shelter-label">Evacuation Info</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- ══════════════════════════════════════════════════ -->
+                    <!-- TIER 1: HERO FLOOD & TELEMETRY STATUS BANNER      -->
+                    <!-- ══════════════════════════════════════════════════ -->
+                    <div class="hero-flood-banner" id="hero-flood-banner">
+                        <!-- Stale Sensor Data Warning -->
+                        <div id="stale-data-banner" class="stale-data-banner" style="display: none;" role="alert">
+                            <span id="stale-data-text">Sensor data may be outdated — no reports received recently.</span>
+                        </div>
+                        <div class="hero-banner-top">
+                            <div class="hero-user-info">
+                                <p id="live-date-time" class="hero-time-text">
+                                    <i data-lucide="calendar" style="width: 13px; height: 13px; display: inline-block; vertical-align: -2px; margin-right: 4px;"></i>
+                                    <span id="live-date-text">Loading...</span>
+                                </p>
+                            </div>
+                            <div class="hero-status-right">
+                                <div class="system-status-pill desktop-status" id="system-status-container-desktop">
+                                    <div id="system-status-dot-desktop" class="pulse-dot"></div>
+                                    <span id="system-status-text-desktop">...</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dual Core Flood Telemetry (The 2 Numbers That Matter Most) -->
+                        <div class="hero-telemetry-grid">
+                            <!-- Core 1: Water Level -->
+                            <div class="hero-metric-box water-focus">
+                                <div class="hero-box-header">
+                                    <div class="hero-icon-pill teal">
+                                        <i data-lucide="waves"></i>
+                                    </div>
+                                    <span class="hero-box-label">Water Level</span>
+                                </div>
+                                <div class="hero-box-body">
+                                    <div class="hero-main-number">
+                                        <span class="hero-value" id="water-level-value">--</span>
+                                        <span class="hero-unit">cm</span>
+                                    </div>
+                                    <div class="threshold-bar" id="water-threshold-bar" role="img" aria-label="Water level relative to flood thresholds">
+                                        <div class="threshold-fill safe" id="water-threshold-fill"></div>
+                                        <div class="threshold-marker" style="left: 75%;" title="High Risk (75% of channel)"></div>
+                                        <div class="threshold-marker critical" style="left: 100%;" title="Flooding level"></div>
+                                    </div>
+                                    <div class="threshold-scale">
+                                        <span>Dry</span>
+                                        <span class="ts-mid">High Risk</span>
+                                        <span id="water-gauge-max-label">Max</span>
+                                    </div>
+                                    <div class="hero-sub-metric">
+                                        <span class="sub-label">Rise Rate:</span>
+                                        <span id="water-rise-rate-value" class="sub-val">--</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Core 2: Cumulative Rainfall -->
+                            <div class="hero-metric-box rain-focus">
+                                <div class="hero-box-header">
+                                    <div class="hero-icon-pill blue">
+                                        <i data-lucide="cloud-rain"></i>
+                                    </div>
+                                    <span class="hero-box-label">Cumulative Rain (Today)</span>
+                                </div>
+                                <div class="hero-box-body">
+                                    <div class="hero-main-number">
+                                        <span class="hero-value" id="rainfall-value">0.00</span>
+                                        <span class="hero-unit">mm</span>
+                                    </div>
+                                    <div class="threshold-bar" id="rain-threshold-bar" role="img" aria-label="Rainfall relative to danger threshold">
+                                        <div class="threshold-fill safe" id="rain-threshold-fill"></div>
+                                        <div class="threshold-marker" style="left: 50%;" title="Warning threshold (50% of danger level)"></div>
+                                        <div class="threshold-marker critical" style="left: 100%;" title="Danger threshold"></div>
+                                    </div>
+                                    <div class="threshold-scale">
+                                        <span>Trace</span>
+                                        <span class="ts-mid">Warning</span>
+                                        <span>Danger</span>
+                                    </div>
+                                    <div class="hero-sub-metric">
+                                        <span class="sub-label">Rate:</span>
+                                        <span id="rain-rate-value" class="sub-val">--</span>
+                                        <span class="sub-sep">•</span>
+                                        <span id="rain-intensity-badge" class="risk-badge safe badge-sm">None</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hero Footer: Device Location -->
+                        <div class="hero-banner-footer">
+                            <div class="hero-location-info">
+                                <i data-lucide="map-pin" class="loc-icon"></i>
+                                <span class="loc-label">Monitoring Station:</span>
+                                <a id="location-name-display" href="#" class="loc-name loc-clickable">Retrieving location...</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ══════════════════════════════════════════════════ -->
+                    <!-- TIER 2: COMPACT 6-METRIC WEATHER STRIP             -->
+                    <!-- ══════════════════════════════════════════════════ -->
+                    <div class="weather-strip-container">
+                        <div class="weather-strip-grid">
+                            <!-- 1. Temp -->
+                            <div class="weather-chip">
+                                <div class="chip-icon orange"><i data-lucide="thermometer"></i></div>
+                                <div class="chip-data">
+                                    <label>Temperature</label>
+                                    <span class="chip-value"><span id="temp-value">--.-</span><small>°C</small></span>
+                                </div>
+                            </div>
+
+                            <!-- 2. Humidity -->
+                            <div class="weather-chip">
+                                <div class="chip-icon cyan"><i data-lucide="droplets"></i></div>
+                                <div class="chip-data">
+                                    <label>Humidity</label>
+                                    <span class="chip-value"><span id="humidity-value">--</span><small>%</small></span>
+                                </div>
+                            </div>
+
+                            <!-- 3. Pressure -->
+                            <div class="weather-chip">
+                                <div class="chip-icon purple"><i data-lucide="gauge"></i></div>
+                                <div class="chip-data">
+                                    <label>Pressure</label>
+                                    <span class="chip-value"><span id="pressure-value">----</span><small>hPa</small></span>
+                                    <span class="chip-sub"><strong id="pressure-trend-badge">Stable</strong></span>
+                                </div>
+                            </div>
+
+                            <!-- 4. Light / Sun -->
+                            <div class="weather-chip">
+                                <div class="chip-icon yellow"><i data-lucide="sun"></i></div>
+                                <div class="chip-data">
+                                    <label>Light Level</label>
+                                    <span class="chip-value"><span id="light-value">--</span><small>lux</small></span>
+                                    <span class="chip-sub">Cloud: <strong id="cloud-cover-value">--%</strong></span>
+                                </div>
+                            </div>
+
+                            <!-- 5. Comfort Index -->
+                            <div class="weather-chip">
+                                <div class="chip-icon green"><i data-lucide="wind"></i></div>
+                                <div class="chip-data">
+                                    <label>Comfort Index</label>
+                                    <span class="chip-value"><span id="dew-point-value">--.-</span><small>°C DP</small></span>
+                                    <span class="chip-sub">Feels: <strong id="heat-index-value">--.-°C</strong></span>
+                                </div>
+                            </div>
+
+                            <!-- 6. AI Flood Risk Score -->
+                            <div class="weather-chip">
+                                <div class="chip-icon indigo"><i data-lucide="brain"></i></div>
+                                <div class="chip-data">
+                                    <label>Risk Score</label>
+                                    <span class="chip-value"><span id="prediction-score-value">0.0</span><small>/10</small></span>
+                                    <span class="chip-sub">Model: <strong>Active</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ══════════════════════════════════════════════════ -->
+                    <!-- TIER 3: LIVE VISUAL TIMELINE & GRAPHS             -->
+                    <!-- ══════════════════════════════════════════════════ -->
+                    <div class="dashboard-body-grid" id="home-grid">
+                        <!-- 24-Hour Temperature Timeline -->
+                        <div class="panel-card hourly-temp-panel" style="grid-column: span 2;">
+                            <div class="panel-header">
+                                <div class="panel-title">
+                                    <h3>24-Hour Temperature Timeline</h3>
+                                </div>
+                            </div>
+                            <div class="hourly-forecast-row" id="hourly-temp-timeline">
+                                <div class="forecast-loading">
+                                    <div class="skeleton-hour" aria-hidden="true"></div>
+                                    <div class="skeleton-hour" aria-hidden="true"></div>
+                                    <div class="skeleton-hour" aria-hidden="true"></div>
+                                    <div class="skeleton-hour" aria-hidden="true"></div>
+                                    <div class="skeleton-hour" aria-hidden="true"></div>
+                                    <div class="skeleton-hour" aria-hidden="true"></div>
+                                    <div class="skeleton-hour" aria-hidden="true"></div>
+                                    <div class="skeleton-hour" aria-hidden="true"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Multi-Sensor Risk Outlook (promoted above charts — answers "should I worry?" first) -->
+                        <div class="panel-card prediction-panel" id="home-prediction-card">
+                            <!-- <div class="panel-header">
+                                <div class="panel-title">
+                                    <i data-lucide="sparkles"></i>
+                                    <h3>Flood Risk at a Glance</h3>
+                                </div>
+                            </div> -->
+                            <div class="prediction-content">
+                                <div class="outlook-main">
+                                    <div id="prediction-icon-box" class="prediction-icon">
+                                        <i data-lucide="sun"></i>
+                                    </div>
+                                    <div class="outlook-info">
+                                        <h4 id="prediction-title">Analyzing...</h4>
+                                        <p id="prediction-desc">Gathering sensor data for local forecast.</p>
+                                    </div>
+                                </div>
+                                <div class="probability-bars">
+                                    <div class="prob-item">
+                                        <label>Flood Risk</label>
+                                        <div class="progress-bg"><div id="prob-flood" class="progress-fill safe" style="width: 0%"></div></div>
+                                    </div>
+                                    <div class="prob-item">
+                                        <label>Rain Probability</label>
+                                        <div class="progress-bg"><div id="prob-rain" class="progress-fill blue" style="width: 0%"></div></div>
+                                    </div>
+                                    <div class="prob-item">
+                                        <label>Water Level Risk</label>
+                                        <div class="progress-bg"><div id="prob-water" class="progress-fill teal" style="width: 0%"></div></div>
+                                    </div>
+                                </div>
+                                <!-- Sensor Breakdown -->
+                                <div class="prediction-breakdown" id="prediction-breakdown">
+                                    <div class="breakdown-row">
+                                        <span class="breakdown-label">Pressure Factor</span>
+                                        <span class="breakdown-value" id="factor-pressure">--</span>
+                                    </div>
+                                    <div class="breakdown-row">
+                                        <span class="breakdown-label">Humidity Factor</span>
+                                        <span class="breakdown-value" id="factor-humidity">--</span>
+                                    </div>
+                                    <div class="breakdown-row">
+                                        <span class="breakdown-label">Light/Cloud Factor</span>
+                                        <span class="breakdown-value" id="factor-light">--</span>
+                                    </div>
+                                    <div class="breakdown-row">
+                                        <span class="breakdown-label">Rain Trend Factor</span>
+                                        <span class="breakdown-value" id="factor-rain">--</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Live Precipitation Graph -->
+                        <div class="panel-card chart-panel">
+                            <div class="panel-header">
+                                <div class="panel-title">
+                                    <h3>Precipitation Trend</h3>
+                                </div>
+                                <span class="live-indicator">LIVE: <span id="last-update">--:--</span></span>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="mainRainfallChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Atmospheric Environmental Analytics Chart -->
+                        <div class="panel-card chart-panel" style="grid-column: span 2;">
+                            <div class="panel-header">
+                                <div class="panel-title">
+                                    <h3>Atmospheric Conditions (Temp & Humidity)</h3>
+                                </div>
+                            </div>
+                            <div class="chart-container multi-chart">
+                                <canvas id="atmosphericChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Notice Panel — dynamic, state-driven (compact inline banner) -->
+                        <div class="panel-card info-panel notice-compact" id="system-notice-panel" style="grid-column: span 2;">
+                            <div class="notice-icon"><i data-lucide="megaphone"></i></div>
+                            <div class="notice-body">
+                                <label>Sensor System Notice</label>
+                                <span id="notice-headline">All Systems Normal</span>
+                                <p id="notice-explanation">The monitoring station is online and tracking rainfall, water level, and weather conditions continuously.</p>
+                                <p id="admin-message-display">"Monitoring system active. Stay safe."</p>
+                            </div>
+                        </div>
+                        <style>
+                            #system-notice-panel { transition: background 0.4s, border-left-color 0.4s; border-left: 4px solid transparent; }
+                            #system-notice-panel.notice-normal { border-left-color: #10b981; }
+                            #system-notice-panel.notice-watch { border-left-color: #3b82f6; }
+                            #system-notice-panel.notice-warning, #system-notice-panel.notice-stale { border-left-color: #f59e0b; background: rgba(245,158,11,0.08); }
+                            #system-notice-panel.notice-danger { border-left-color: #dc2626; background: rgba(220,38,38,0.10); }
+                            #system-notice-panel #notice-headline { display: block; font-weight: 800; font-size: 0.95rem; letter-spacing: 0.02em; margin: 0 0 4px; }
+                            #system-notice-panel.notice-normal #notice-headline { color: #10b981; }
+                            #system-notice-panel.notice-watch #notice-headline { color: #3b82f6; }
+                            #system-notice-panel.notice-warning #notice-headline, #system-notice-panel.notice-stale #notice-headline { color: #d97706; }
+                            #system-notice-panel.notice-danger #notice-headline { color: #dc2626; }
+                            #system-notice-panel #notice-explanation { margin: 0 0 6px; font-size: 0.85rem; line-height: 1.5; opacity: 0.85; }
+                            #system-notice-panel #admin-message-display { margin: 0; font-size: 0.8rem; opacity: 0.75; }
+                        </style>
+                    </div>
+                </div>
+
+                <!-- Analytics Section -->
+                <div id="section-analytics" class="dashboard-section">
+                    <!-- Time Range / Date Choices -->
+                    <div class="time-range-bar" id="user-time-range-bar">
+                        <div class="time-range-pills">
+                            <button type="button" class="range-pill active" data-range="today">Today</button>
+                            <button type="button" class="range-pill" data-range="7d">Weekly (7D)</button>
+                            <button type="button" class="range-pill" data-range="30d">Monthly (30D)</button>
+                        </div>
+                        <div class="time-range-custom">
+                            <span class="custom-date-label"><i data-lucide="calendar"></i> Specific Day:</span>
+                            <input type="date" class="range-date-input" id="user-chart-date-picker" />
+                        </div>
+                    </div>
+
+                    <div class="detailed-charts-grid">
+                        <div class="panel-card chart-panel-large">
+                            <div class="panel-header">
+                                <div class="panel-title"><h3>Temperature History</h3></div>
+                            </div>
+                            <div class="chart-container-large">
+                                <canvas id="detailedTempChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="panel-card chart-panel-large">
+                            <div class="panel-header">
+                                <div class="panel-title"><h3>Humidity History</h3></div>
+                            </div>
+                            <div class="chart-container-large">
+                                <canvas id="detailedHumChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="panel-card chart-panel-large">
+                            <div class="panel-header">
+                                <div class="panel-title"><h3>Atmospheric Pressure</h3></div>
+                            </div>
+                            <div class="chart-container-large">
+                                <canvas id="detailedPresChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="panel-card chart-panel-large">
+                            <div class="panel-header">
+                                <div class="panel-title"><h3>Rainfall Intensity</h3></div>
+                            </div>
+                            <div class="chart-container-large">
+                                <canvas id="detailedRainChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- New: Water Level Chart -->
+                        <div class="panel-card chart-panel-large">
+                            <div class="panel-header">
+                                <div class="panel-title"><h3>Water Level Trend</h3></div>
+                            </div>
+                            <div class="chart-container-large">
+                                <canvas id="detailedWaterChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- New: Light & Cloud Cover Chart -->
+                        <div class="panel-card chart-panel-large">
+                            <div class="panel-header">
+                                <div class="panel-title"><h3>Light &amp; Cloud Cover</h3></div>
+                            </div>
+                            <div class="chart-container-large">
+                                <canvas id="detailedLightChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Forecast Section — Open-Meteo API -->
+                <div id="section-forecast" class="dashboard-section">
+                    <div class="dashboard-body-grid" id="forecast-grid">
+                        <!-- Today's Sensor-Based Prediction -->
+                        <div class="panel-card today-forecast-panel" style="grid-column: span 2;">
+                            <div class="panel-header">
+                                <div class="panel-title">
+                                    <h3>Today — Live Sensor Prediction</h3>
+                                </div>
+                                <span class="live-indicator">SENSOR DATA</span>
+                            </div>
+                            <div class="today-forecast-content">
+                                <div class="today-main-weather">
+                                    <div id="today-weather-icon" class="today-icon">
+                                        <i data-lucide="sun"></i>
+                                    </div>
+                                    <div class="today-info">
+                                        <h2 id="today-condition">Analyzing Sensors...</h2>
+                                        <p id="today-detail">Combining all 4 sensors for today's outlook</p>
+                                    </div>
+                                </div>
+                                <div class="today-metrics-row">
+                                    <div class="today-metric">
+                                        <span class="tm-label">Temperature</span>
+                                        <span class="tm-value" id="today-temp">--°C</span>
+                                    </div>
+                                    <div class="today-metric">
+                                        <span class="tm-label">Rain Chance</span>
+                                        <span class="tm-value" id="today-rain-chance">--%</span>
+                                    </div>
+                                    <div class="today-metric">
+                                        <span class="tm-label">Water Level</span>
+                                        <span class="tm-value" id="today-water">-- cm</span>
+                                    </div>
+                                    <div class="today-metric">
+                                        <span class="tm-label">Cloud Cover</span>
+                                        <span class="tm-value" id="today-clouds">--%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 7-Day API Forecast Cards -->
+                        <div class="panel-card forecast-days-panel" style="grid-column: span 2;">
+                            <div class="panel-header">
+                                <div class="panel-title">
+                                    <h3>7-Day Weather Forecast</h3>
+                                </div>
+                                <span class="live-indicator" id="forecast-location-label">Location: --</span>
+                            </div>
+                            <div class="forecast-days-grid" id="forecast-days-container">
+                                <!-- Populated dynamically by JS -->
+                                <div class="forecast-loading">
+                                    <div class="skeleton-day" aria-hidden="true"></div>
+                                    <div class="skeleton-day" aria-hidden="true"></div>
+                                    <div class="skeleton-day" aria-hidden="true"></div>
+                                    <div class="skeleton-day" aria-hidden="true"></div>
+                                    <div class="skeleton-day" aria-hidden="true"></div>
+                                    <div class="skeleton-day" aria-hidden="true"></div>
+                                    <div class="skeleton-day" aria-hidden="true"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Weekly Precipitation History Chart -->
+                        <div class="panel-card chart-panel" style="grid-column: span 2;">
+                            <div class="panel-header">
+                                <div class="panel-title">
+                                    <h3>7-Day Precipitation History</h3>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="weeklyRainChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="panel-card info-panel">
+                            <h3>Weekly Summary Report</h3>
+                            <div class="report-stats">
+                                <div class="report-item">
+                                    <span>Total Weekly Rainfall</span>
+                                    <strong id="weekly-total-rain">0.0 mm</strong>
+                                </div>
+                                <div class="report-item">
+                                    <span>Average Temperature</span>
+                                    <strong id="weekly-avg-temp">0.0 °C</strong>
+                                </div>
+                                <div class="report-item">
+                                    <span>Peak Intensity</span>
+                                    <strong id="weekly-peak-rain">0.0 mm</strong>
+                                </div>
+                                <div class="report-item">
+                                    <span>Days with Rain</span>
+                                    <strong id="weekly-rain-days">0</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel-card prediction-panel" id="forecast-guidance-card">
+                            <div class="panel-header">
+                                <div class="panel-title">
+                                    <h3>Model Guidance</h3>
+                                </div>
+                            </div>
+                            <div class="prediction-content">
+                                <p id="model-guidance-text">Based on current atmospheric pressure trends, the localized anticipatory network predicts stable conditions for the next 48 hours.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Map Section -->
+                <div id="section-livemap" class="dashboard-section">
+                    <div class="dashboard-body-grid" id="livemap-grid">
+                        <!-- Live Station Map (Leaflet + OpenStreetMap, embedded) -->
+                        <div class="panel-card map-panel" id="station-map-panel" style="grid-column: span 2;">
+                            <div class="panel-header">
+                                <div class="panel-title">
+                                    <h3>Live Station Map</h3>
+                                </div>
+                                <a id="station-map-external" href="https://www.google.com/maps" target="_blank" rel="noopener" class="map-external-link">Open in Google Maps</a>
+                            </div>
+                            <div class="station-map-wrap">
+                                <div id="station-map" class="station-map" role="region" aria-label="Map showing the monitoring station's location">
+                                    <div class="map-placeholder" id="station-map-placeholder">
+                                        <i data-lucide="map-pin"></i>
+                                        <p>Waiting for sensor location…</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Section -->
+                <div id="section-settings" class="dashboard-section">
+                    <div class="settings-single-container">
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <div class="settings-icon-box blue">
+                                    <i data-lucide="user-cog"></i>
+                                </div>
+                                <div>
+                                    <h3>User Settings &amp; Security</h3>
+                                    <p>Manage contact info, password, and app preferences</p>
+                                </div>
+                            </div>
+                            <div class="settings-card-body">
+
+                                <!-- Email Address (Clean Read-Only Text Display) -->
+                                <div class="settings-field">
+                                    <label>Email Address</label>
+                                    <div id="settings-email-display" class="settings-text-display">Loading...</div>
+                                </div>
+
+                                <!-- Emergency Phone Number -->
+                                <div class="settings-field">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                                        <label for="settings-phone" style="margin: 0;">Emergency Phone Number</label>
+                                        <span id="phone-status-badge" class="settings-badge warning"><i data-lucide="alert-triangle"></i> Not Configured</span>
+                                    </div>
+                                    <div class="settings-input-row">
+                                        <input type="tel" id="settings-phone" class="settings-input" maxlength="13" inputmode="tel" placeholder="+639123456789">
+                                        <button id="save-phone-btn" class="settings-btn primary">
+                                            <i data-lucide="save"></i> Save
+                                        </button>
+                                    </div>
+                                    <small>Format: +[country code][number] (e.g. +639123456789). Flood SMS alerts are delivered even without internet or load data connection.</small>
+                                </div>
+                                <div id="profile-msg" class="settings-msg" style="display:none;"></div>
+
+                                <!-- Security Divider -->
+                                <div class="settings-section-divider">
+                                    <i data-lucide="shield" style="width:16px; height:16px;"></i> Security &amp; Password
+                                </div>
+
+                                <!-- Password Change Fields -->
+                                <div class="settings-field">
+                                    <label for="settings-current-pw">Current Password</label>
+                                    <div class="settings-input-row password-row">
+                                        <input type="password" id="settings-current-pw" class="settings-input" placeholder="Current password">
+                                        <button type="button" class="settings-toggle-pw" data-target="settings-current-pw"><i data-lucide="eye"></i></button>
+                                    </div>
+                                </div>
+
+                                <div class="settings-field">
+                                    <label for="settings-new-pw">New Password</label>
+                                    <div class="settings-input-row password-row">
+                                        <input type="password" id="settings-new-pw" class="settings-input" placeholder="New password (min. 6 chars)">
+                                        <button type="button" class="settings-toggle-pw" data-target="settings-new-pw"><i data-lucide="eye"></i></button>
+                                    </div>
+                                </div>
+
+                                <div class="settings-field">
+                                    <label for="settings-confirm-pw">Confirm New Password</label>
+                                    <div class="settings-input-row password-row">
+                                        <input type="password" id="settings-confirm-pw" class="settings-input" placeholder="Repeat new password">
+                                        <button type="button" class="settings-toggle-pw" data-target="settings-confirm-pw"><i data-lucide="eye"></i></button>
+                                    </div>
+                                </div>
+
+                                <button id="change-password-btn" class="settings-btn primary full-width">
+                                    <i data-lucide="lock"></i> Update Password
+                                </button>
+                                <div id="password-msg" class="settings-msg" style="display:none;"></div>
+
+                                <!-- App Installation Section -->
+                                <div class="settings-section-divider">
+                                    <i data-lucide="download" style="width:16px; height:16px;"></i> Application Installation
+                                </div>
+                                <div class="settings-install-card">
+                                    <div class="settings-install-info">
+                                        <strong class="settings-install-title">Install BRIANE App</strong>
+                                        <p class="settings-install-desc">Add to home screen for faster access, flood alerts, and offline caching.</p>
+                                    </div>
+                                    <button id="settings-install-btn" type="button" class="settings-btn primary">
+                                        <i data-lucide="download"></i> Install App
+                                    </button>
+                                </div>
+
+                                <!-- Danger Action Row -->
+                                <div class="danger-compact-row">
+                                    <div class="danger-compact-info">
+                                        <strong>Delete Account</strong>
+                                        <p>Permanently remove account and data.</p>
+                                    </div>
+                                    <button id="delete-account-btn" class="settings-btn danger">
+                                        <i data-lucide="trash-2"></i> Delete
+                                    </button>
+                                </div>
+                                <div id="danger-msg" class="settings-msg" style="display:none;"></div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Emergency Directory Section -->
+                <div id="section-emergency" class="dashboard-section">
+                    <div class="emergency-directory-container">
+                        <!-- Hotlines Grid -->
+                        <div class="directory-section-title">
+                            <i data-lucide="phone-outgoing"></i>
+                            <span>Emergency Hotlines</span>
+                        </div>
+                        <div class="hotlines-grid" id="resident-hotlines-container">
+                            <div class="directory-empty-state">
+                                <i data-lucide="phone-off"></i>
+                                <strong>No official hotlines published yet</strong>
+                                <p>Your barangay administrator will publish verified emergency numbers here. For now, dial the national emergency line <a href="tel:911"><strong>911</strong></a>.</p>
+                            </div>
+                        </div>
+
+                        <!-- Evacuation Centers Directory -->
+                        <div class="directory-section-title" style="margin-top: 28px;">
+                            <i data-lucide="home"></i>
+                            <span>Designated Evacuation Centers</span>
+                        </div>
+                        <div class="evacuation-grid" id="resident-evacuation-container">
+                            <div class="directory-empty-state">
+                                <i data-lucide="home"></i>
+                                <strong>No evacuation centers published yet</strong>
+                                <p>Designated evacuation sites will appear here once your barangay administrator publishes them. In an active emergency, follow instructions from official SMS alerts and local officials.</p>
+                            </div>
+                        </div>
+
+                        <!-- Flash Flood Preparedness Guide -->
+                        <div class="directory-section-title" style="margin-top: 28px;">
+                            <i data-lucide="life-buoy"></i>
+                            <span>Flash Flood Safety & Go-Bag Essentials</span>
+                        </div>
+                        <div class="flood-guide-card">
+                            <div class="guide-col">
+                                <h4><i data-lucide="briefcase"></i> Emergency "Go-Bag" Essentials</h4>
+                                <ul class="guide-list">
+                                    <li><strong>Drinking Water:</strong> 1 gallon per person per day (3-day supply).</li>
+                                    <li><strong>Ready-to-Eat Food:</strong> Easy-open canned goods, energy biscuits.</li>
+                                    <li><strong>Important Documents:</strong> IDs, titles, birth certs sealed in waterproof bag.</li>
+                                    <li><strong>First Aid & Meds:</strong> Prescription medicines, antiseptic, bandages.</li>
+                                    <li><strong>Power & Comms:</strong> Fully charged powerbank, whistle, waterproof flashlight.</li>
+                                </ul>
+                            </div>
+                            <div class="guide-col">
+                                <h4><i data-lucide="alert-triangle"></i> Critical Flood Action Protocol</h4>
+                                <ul class="guide-list">
+                                    <li><strong>Evacuate Early:</strong> Do NOT wait until floodwaters reach your doorstep.</li>
+                                    <li><strong>Electrical Safety:</strong> Switch off the main household electrical circuit breaker.</li>
+                                    <li><strong>Never Walk or Drive in Floodwaters:</strong> Just 15cm of flowing water can knock an adult down; 30cm can float cars.</li>
+                                    <li><strong>Stay Tuned:</strong> Keep your mobile phone active for official BRIANE SMS emergency alerts.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div> <!-- .scroll-area -->
+        </main>
+
+        <!-- Mobile Bottom Nav -->
+        <nav class="mobile-bottom-bar">
+            <a href="#" class="bottom-nav-item active" data-section="home">
+                <i data-lucide="layout-grid"></i>
+                <span>Home</span>
+            </a>
+            <a href="#" class="bottom-nav-item" data-section="analytics">
+                <i data-lucide="bar-chart-2"></i>
+                <span>Trends</span>
+            </a>
+            <a href="#" class="bottom-nav-item" data-section="forecast">
+                <i data-lucide="calendar-days"></i>
+                <span>Forecast</span>
+            </a>
+            <a href="#" class="bottom-nav-item" data-section="emergency">
+                <i data-lucide="phone-call"></i>
+                <span>Hotlines</span>
+            </a>
+            <a id="map-link-mobile" href="#" class="bottom-nav-item" data-section="livemap">
+                <i data-lucide="map-pin"></i>
+                <span>Map</span>
+            </a>
+            <a href="#" class="bottom-nav-item" data-section="settings">
+                <i data-lucide="settings"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- App Installation Guide Modal — opened by the Install App button.
+         Replaces the old native alert() with a styled, scrollable dialog
+         that detects the user's device and explains how the installed
+         app will appear on their phone. -->
+    <div id="install-guide-modal" class="install-guide-overlay" hidden>
+        <div class="install-guide" role="dialog" aria-modal="true" aria-labelledby="install-guide-title">
+            <div class="install-guide-head">
+                <div class="install-guide-head-text">
+                    <h3 id="install-guide-title">Install BRIANE on Your Phone</h3>
+                    <p class="install-guide-sub" id="install-guide-sub">Detecting your device…</p>
+                </div>
+                <button type="button" id="install-guide-close" class="install-guide-close" aria-label="Close installation guide">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="install-guide-body">
+                <!-- What kind of install this is -->
+                <div class="install-guide-type">
+                    <span class="install-guide-type-chip" id="install-guide-type-chip">
+                        <i data-lucide="smartphone"></i>
+                        <span>Web App (PWA)</span>
+                    </span>
+                    <p id="install-guide-type-text">BRIANE installs as a Progressive Web App — a real app icon on your home screen, without going through the app store.</p>
+                </div>
+
+                <h4>What installing does</h4>
+                <ul>
+                    <li><strong>Adds a BRIANE icon</strong> to your phone's home screen, so you can open it like any other app.</li>
+                    <li><strong>Opens full-screen</strong> without the browser address bar and with only the dashboard to look at.</li>
+                    <li><strong>Keeps working offline</strong> — the last readings and alerts are cached on your device.</li>
+                    <li><strong>Flood alerts still arrive</strong> as push notifications even when the app is closed.</li>
+                    <li><strong>Always current</strong> — updates install themselves the next time you open it.</li>
+                </ul>
+
+                <h4 id="install-guide-steps-title">How to install</h4>
+                <ol class="install-guide-steps" id="install-guide-steps"></ol>
+
+                <h4>How it will look on your phone</h4>
+                <div class="install-guide-preview" id="install-guide-preview">
+                    <div class="install-guide-preview-icon">
+                        <img src="../assets/icon-192.png" alt="BRIANE app icon">
+                    </div>
+                    <div class="install-guide-preview-text">
+                        <strong>BRIANE</strong>
+                        <span>Appears on your home screen with this icon, in your app list, and in your recent apps — just like a normal installed app.</span>
+                    </div>
+                </div>
+
+                <p class="install-guide-note">
+                    <i data-lucide="info"></i>
+                    <span id="install-guide-note-text">Installing does not change your account, your phone number, or the alerts you receive. You can remove it any time by deleting the icon from your home screen.</span>
+                </p>
+            </div>
+
+            <div class="install-guide-foot">
+                <button type="button" id="install-guide-dismiss" class="install-guide-dismiss">Not Now</button>
+                <button type="button" id="install-guide-action" class="install-guide-action">
+                    <i data-lucide="download"></i>
+                    <span>Install Now</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>

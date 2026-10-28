@@ -1,0 +1,93 @@
+rules_version = '2';
+
+// Firestore security rules for the BRIANE flood alert system.
+//
+// Data flows these rules must support:
+//   - Firmware (ESP32) writes telemetry via REST with only a Web API key.
+//     NOTE: a Web API key does NOT authenticate — those requests arrive as
+//     unauthenticated. Until the firmware uses real auth tokens or App Check,
+//     device-written collections (weather/current, weather_history, logs)
+//     must allow public create/update. They are scoped tightly by path;
+//     see "Device access migration" at the bottom.
+//   - Public dashboard reads live data before login.
+//   - Registered users update ONLY their own doc's phoneNumber field.
+//   - Admins (users/{uid}.role == 'admin') manage config and user accounts.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: is the caller an admin per their own users doc?
+    function isAdmin() {
+      return request.auth != null
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // --- Config backup & SIM status ---
+    // Named paths only — no wildcard. The old weather/current mirror doc is dead
+    // (live telemetry moved to RTDB); leaving it out means it stays fully inaccessible.
+    // weather/config: read must stay public because the firmware fetches it via
+    // unauthenticated REST; its resetManualTrigger() also writes unauthenticated,
+    // so write stays open until the device authenticates (see migration notes below).
+    match /weather/config {
+      allow read: if true;
+      allow write: if isAdmin() || request.auth == null; // TODO tighten once device authenticates
+    }
+
+    // weather/sim: SIM balance status written by firmware after its DATA BAL check.
+    match /weather/sim {
+      allow read: if true;
+      allow write: if isAdmin() || request.auth == null;
+    }
+
+    // Any other doc under /weather/* (e.g. the obsolete "current" doc): denied.
+    // No match = deny by default.
+
+    // --- Historical readings ---
+    // Device-created history docs; admins may also create/read for reporting.
+    match /weather_history/{docId} {
+      allow read, create: if true;                        // device POSTs unauthenticated
+      allow update, delete: if isAdmin();
+    }
+
+    // --- System logs ---
+    // Written by firmware (SIM errors) and clients (failed admin logins); read by admins.
+    match /logs/{logId} {
+      allow create: if true;                              // any client/firmware may append
+      allow read: if isAdmin();
+      allow update, delete: if isAdmin();
+    }
+
+    // --- User profiles ---
+    // Registration creates users/{uid} while signed in as that new user.
+    // Users may thereafter only set their own phoneNumber (dashboard settings)
+    // and delete their own doc (self-service account deletion).
+    // role/disabled changes are admin-only. The FIRMWARE reads all user docs
+    // unauthenticated to build its SMS recipient list → list access stays public
+    // until device auth lands.
+    match /users/{userId} {
+      allow get: if request.auth != null && (
+        request.auth.uid == userId || isAdmin()
+      ) || true;                                          // TODO remove `|| true` with device auth (firmware reads recipients)
+      allow list: if true;                                // TODO restrict to isAdmin() once device authenticates
+      allow update: if isAdmin()
+                    || (request.auth != null && request.auth.uid == userId
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['phoneNumber', 'isVerified']));
+      // Self-service account deletion (dashboard "Delete Account" flow) or admin removal.
+      allow delete: if isAdmin()
+                    || (request.auth != null && request.auth.uid == userId);
+    }
+
+    // Everything else: deny by default (no rule = deny).
+
+    // ── Device access migration path ─────────────────────────────────────────
+    // The `|| true` / public-write allowances above exist ONLY because the ESP32
+    // talks to Firestore over REST with no credentials. To lock this down:
+    //   1. Mint a custom token per device (Admin SDK) and send ID tokens from
+    //      firmware, or enable App Check for the REST endpoints.
+    //   2. Replace the public allowances with:
+    //        weather/*:       write: if isAdmin();  read: if true
+    //        weather_history: create: if isAdmin();
+    //        logs:            create: if isAdmin() || request.auth == null is dropped
+    //        users:           get/list: if request.auth != null && (own || isAdmin())
+  }
+}

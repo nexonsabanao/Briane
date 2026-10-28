@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRIANE Admin</title>
+    <script>
+        // Apply persisted dark-weather theme to <html> BEFORE first paint so
+        // the splash screen never flashes white in night/stormy/rainy mode.
+        // body isn't parsed yet — use documentElement; background-manager.js
+        // keeps both elements in sync afterwards.
+        (function () {
+            try {
+                var raw = localStorage.getItem('briane_last_weather');
+                var dark = false;
+                if (raw) {
+                    var parsed = JSON.parse(raw);
+                    dark = !!parsed && ['night', 'stormy', 'rainy'].indexOf(parsed.type) !== -1;
+                }
+                if (dark) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                }
+            } catch (e) {}
+        })();
+    </script>
+    <link rel="icon" type="image/png" sizes="48x48" href="../assets/favicon-48.png">
+    <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2c5f97">
+    <meta name="description" content="BRIANE administrative command center — telemetry, alerts, and emergency directory.">
+<meta name="robots" content="noindex">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="BRIANE Admin">
+    <link rel="apple-touch-icon" href="../assets/icon-192.png">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="../background/weather-backgrounds.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@1.43.0"></script>
+    <script src="../background/background-manager.js"></script>
+    <script src="../background/chart-theme.js"></script>
+    <script src="../firebase-config.js"></script>
+</head>
+<body class="admin-dashboard">
+<a class="skip-link" href="#main-content">Skip to content</a>
+<!-- Splash Screen -->
+<div id="splash-screen" class="splash-screen">
+    <div class="splash-logo-box">
+        <img src="../assets/icon.png" alt="BRIANE Logo">
+    </div>
+    <h2 class="splash-title">BRIANE Admin</h2>
+    <p class="splash-tagline">Your barangay's friendly flood early-warning companion — keeping you informed, rain or shine.</p>
+    <div class="splash-loader"><div class="splash-loader-inner"></div></div>
+</div>
+
+<script>
+    // Real progress bar: width is driven by actual loading milestones via
+    // window.SplashBar.set(pct) — 0 → 25 → 75 → 100. Monotonic (never
+    // regresses); fill() fires when the page is genuinely ready and page
+    // scripts remove the splash.
+    (function () {
+        const bar = document.querySelector('.splash-loader-inner');
+        let pct = 0;
+        if (bar) bar.style.width = '0%';
+        window.SplashBar = {
+            set: function (v) {
+                if (v <= pct) return;
+                pct = Math.max(0, Math.min(100, v));
+                if (bar) bar.style.width = pct + '%';
+            },
+            fill: function () { window.SplashBar.set(100); }
+        };
+        // Crash net: if a page script below hard-crashes, fill + fade the
+        // splash so the user is never stuck on the loading screen.
+        setTimeout(function () {
+            if (window.SplashBar) window.SplashBar.fill();
+            // Wait for the 100% fill transition to finish before fading.
+            var fillWait = bar
+                ? (parseFloat(getComputedStyle(bar).transitionDuration) || 0.45) * 1000 + 60
+                : 510;
+            setTimeout(function () {
+                const splash = document.getElementById('splash-screen');
+                if (splash) {
+                    splash.style.opacity = '0';
+                    setTimeout(function () { splash.remove(); }, 400);
+                }
+            }, fillWait);
+        }, 6000);
+    })();
+</script>
+
+<div class="app-layout">
+    <!-- Sidebar for Desktop -->
+    <aside class="desktop-sidebar">
+        <div class="sidebar-header">
+            <div class="logo-box">
+                <img src="../assets/icon.png" alt="Logo">
+            </div>
+            <span class="app-name">BRIANE</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-section="overview">
+                <i data-lucide="layout-grid"></i>
+                <span>Overview</span>
+            </a>
+            <a href="#" class="nav-item" data-section="analytics">
+                <i data-lucide="bar-chart-2"></i>
+                <span>Detailed Trends</span>
+            </a>
+            <a href="#" class="nav-item" data-section="users">
+                <i data-lucide="users"></i>
+                <span>Users</span>
+            </a>
+            <a href="#" class="nav-item" data-section="sim">
+                <i data-lucide="rss"></i>
+                <span>SIM Status</span>
+            </a>
+            <a href="#" class="nav-item" data-section="reports">
+                <i data-lucide="calendar-days"></i>
+                <span>Weekly Insights</span>
+            </a>
+            <a href="#" class="nav-item" data-section="emergency">
+                <i data-lucide="shield-alert"></i>
+                <span>Emergency Info</span>
+            </a>
+            <a href="#" class="nav-item" data-section="settings">
+                <i data-lucide="sliders"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer-actions">
+            <button id="sidebar-install-btn" class="pwa-install-sidebar-btn" style="display: none;">
+                <i data-lucide="download"></i>
+                <span>Install Admin App</span>
+            </button>
+            <button id="admin-logout-btn" class="logout-link logout-action-trigger">
+                <i data-lucide="log-out"></i>
+                <span>Sign Out</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="content-view" id="main-content">
+        <header class="view-header">
+            <div class="header-left">
+                <div class="mobile-logo-box">
+                    <img src="../assets/icon.png" alt="Logo">
+                </div>
+                <span class="mobile-brand">BRIANE</span>
+            </div>
+            <div class="header-right">
+                <div class="system-badge" id="device-status-badge">
+                    <div class="pulse-dot" id="header-status-dot"></div>
+                    <span id="device-status-value">Connecting...</span>
+                </div>
+                <div class="mobile-menu-wrap">
+                    <button id="mobile-menu-btn" class="mobile-menu-btn" title="Menu" aria-label="Open menu" aria-expanded="false">
+                        <i data-lucide="menu" aria-hidden="true"></i>
+                    </button>
+                    <div id="mobile-menu-dropdown" class="mobile-menu-dropdown" hidden>
+                        <a href="#" class="nav-btn active" data-section="overview">
+                            <i data-lucide="layout-grid"></i>
+                            <span>Overview</span>
+                        </a>
+                        <a href="#" class="nav-btn" data-section="analytics">
+                            <i data-lucide="bar-chart-2"></i>
+                            <span>Trends</span>
+                        </a>
+                        <a href="#" class="nav-btn" data-section="users">
+                            <i data-lucide="users"></i>
+                            <span>Users</span>
+                        </a>
+                        <a href="#" class="nav-btn" data-section="emergency">
+                            <i data-lucide="shield-alert"></i>
+                            <span>Emergency</span>
+                        </a>
+                        <a href="#" class="nav-btn" data-section="sim">
+                            <i data-lucide="rss"></i>
+                            <span>SIM</span>
+                        </a>
+                        <a href="#" class="nav-btn" data-section="reports">
+                            <i data-lucide="calendar-days"></i>
+                            <span>Forecast</span>
+                        </a>
+                        <a href="#" class="nav-btn" data-section="settings">
+                            <i data-lucide="sliders"></i>
+                            <span>Config</span>
+                        </a>
+                        <button type="button" id="header-install-btn" class="header-install-btn" style="display: none;" title="Install BRIANE Admin App">
+                            <i data-lucide="download"></i>
+                            <span>Install App</span>
+                        </button>
+                        <div class="mobile-menu-sep"></div>
+                        <button type="button" class="nav-btn logout-item logout-action-trigger">
+                            <i data-lucide="log-out"></i>
+                            <span>Sign Out</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="scroll-area">
+            <!-- Welcome Section (visible on desktop, hidden on mobile) -->
+            <div class="welcome-section">
+                <div class="welcome-header-row">
+                    <div>
+                        <h1 id="page-title">Overview</h1>
+                        <p id="admin-live-date-time" style="font-size: 0.8rem; color: rgba(255,255,255,0.7); margin-top: 4px; font-weight: 500; letter-spacing: 0.3px;">
+                            <i data-lucide="calendar" style="width: 13px; height: 13px; display: inline-block; vertical-align: -2px; margin-right: 4px;"></i>
+                            <span id="admin-live-date-text">Loading...</span>
+                        </p>
+                    </div>
+                    <div class="system-badge desktop-status" id="device-status-badge-desktop">
+                        <div class="pulse-dot" id="header-status-dot-desktop"></div>
+                        <span id="device-status-value-desktop">Connecting...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Overview Section -->
+            <div id="section-overview" class="view-section active">
+                <!-- ══════════════════════════════════════════════════ -->
+                <!-- TIER 1: ADMIN HERO COMMAND & FLOOD STATUS BANNER  -->
+                <!-- ══════════════════════════════════════════════════ -->
+                <div class="hero-flood-banner admin-hero">
+                    <!-- Stale Sensor Data Warning (front Command Center: device troubleshooting) -->
+                        <div id="admin-stale-data-banner" class="stale-data-banner" style="display: none;" role="alert">
+                            <span id="admin-stale-data-text">No sensor reports received recently — the device may be offline.</span>
+                        </div>
+                        <div class="hero-banner-top">
+                        <div class="hero-user-info">
+                            <div class="hero-greeting-row">
+                                <h1>Monitoring Flood Risk</h1>
+                                <div id="admin-alert-badge" class="risk-badge safe hero-badge">Safe</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dual Core Flood Telemetry -->
+                    <div class="hero-telemetry-grid">
+                        <!-- Core 1: River Water Level -->
+                        <div class="hero-metric-box water-focus">
+                            <div class="hero-box-header">
+                                <div class="hero-icon-pill teal">
+                                    <i data-lucide="waves"></i>
+                                </div>
+                                <span class="hero-box-label">Water Level</span>
+                            </div>
+                            <div class="hero-box-body">
+                                <div class="hero-main-number">
+                                    <span class="hero-value" id="water-summary">--</span>
+                                    <span class="hero-unit">cm</span>
+                                </div>
+                                <div class="hero-sub-metric">
+                                    <span class="sub-label">Water Rise Rate:</span>
+                                    <span class="sub-val" id="water-rise-rate-hero">--</span>
+                                    <span class="sub-sep">•</span>
+                                    <span id="water-rise-rate-badge" class="risk-badge safe badge-sm">Steady</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Core 2: Cumulative Rain -->
+                        <div class="hero-metric-box rain-focus">
+                            <div class="hero-box-header">
+                                <div class="hero-icon-pill blue">
+                                    <i data-lucide="cloud-rain"></i>
+                                </div>
+                                <span class="hero-box-label">Cumulative Rain (Today)</span>
+                            </div>
+                            <div class="hero-box-body">
+                                <div class="hero-main-number">
+                                    <span class="hero-value" id="rain-summary">0.00</span>
+                                    <span class="hero-unit">mm</span>
+                                </div>
+                                <div class="hero-sub-metric">
+                                    <span class="sub-label">Rate:</span>
+                                    <span id="rain-rate-summary" class="sub-val">--</span>
+                                    <span class="sub-sep">•</span>
+                                    <span id="admin-rain-intensity-badge" class="risk-badge safe badge-sm">None</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hero Footer -->
+                    <div class="hero-banner-footer">
+                        <div class="hero-location-info">
+                            <i data-lucide="map-pin" class="loc-icon"></i>
+                            <span class="loc-label">Station:</span>
+                            <a id="location-name-display-admin" href="#" class="loc-name loc-clickable">--</a>
+                            <span class="sub-sep">•</span>
+                            <span class="loc-label">Threshold:</span>
+                            <strong id="current-threshold-display" style="color: var(--primary-dark);">--</strong> mm
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══════════════════════════════════════════════════ -->
+                <!-- TIER 2: COMPACT 6-METRIC OPS STRIP                 -->
+                <!-- ══════════════════════════════════════════════════ -->
+                <div class="weather-strip-container">
+                    <div class="weather-strip-grid">
+                        <!-- 1. Temp -->
+                        <div class="weather-chip">
+                            <div class="chip-icon orange"><i data-lucide="thermometer"></i></div>
+                            <div class="chip-data">
+                                <label>Temperature</label>
+                                <span class="chip-value"><span id="temp-summary">--.-</span><small>°C</small></span>
+                            </div>
+                        </div>
+
+                        <!-- 2. Humidity -->
+                        <div class="weather-chip">
+                            <div class="chip-icon cyan"><i data-lucide="droplets"></i></div>
+                            <div class="chip-data">
+                                <label>Humidity</label>
+                                <span class="chip-value"><span id="humidity-summary">--</span><small>%</small></span>
+                            </div>
+                        </div>
+
+                        <!-- 3. Pressure -->
+                        <div class="weather-chip">
+                            <div class="chip-icon purple"><i data-lucide="gauge"></i></div>
+                            <div class="chip-data">
+                                <label>Pressure</label>
+                                <span class="chip-value"><span id="pressure-summary">----</span><small>hPa</small></span>
+                            </div>
+                        </div>
+
+                        <!-- 4. Registered Residents / Users -->
+                        <div class="weather-chip">
+                            <div class="chip-icon green"><i data-lucide="users"></i></div>
+                            <div class="chip-data">
+                                <label>Registered Users</label>
+                                <span class="chip-value"><span id="total-users-count">0</span><small>Users</small></span>
+                            </div>
+                        </div>
+
+                        <!-- 5. Light Level -->
+                        <div class="weather-chip">
+                            <div class="chip-icon yellow"><i data-lucide="sun"></i></div>
+                            <div class="chip-data">
+                                <label>Light Level</label>
+                                <span class="chip-value"><span id="light-summary">--</span><small>lux</small></span>
+                            </div>
+                        </div>
+
+                        <!-- 6. Battery Percentage -->
+                        <div class="weather-chip">
+                            <div class="chip-icon indigo"><i data-lucide="battery-charging"></i></div>
+                            <div class="chip-data">
+                                <label>Battery Level</label>
+                                <span class="chip-value"><span id="battery-percentage-summary">--</span><small>%</small></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="main-grid">
+                    <!-- 24-Hour Temperature Timeline -->
+                    <div class="glass-card full-width hourly-temp-panel">
+                        <div class="card-head">
+                            <h3>24-Hour Temperature Timeline</h3>
+                        </div>
+                        <div class="hourly-forecast-row" id="hourly-temp-timeline">
+                            <div class="forecast-loading">
+                                <div class="skeleton-hour" aria-hidden="true"></div>
+                                <div class="skeleton-hour" aria-hidden="true"></div>
+                                <div class="skeleton-hour" aria-hidden="true"></div>
+                                <div class="skeleton-hour" aria-hidden="true"></div>
+                                <div class="skeleton-hour" aria-hidden="true"></div>
+                                <div class="skeleton-hour" aria-hidden="true"></div>
+                                <div class="skeleton-hour" aria-hidden="true"></div>
+                                <div class="skeleton-hour" aria-hidden="true"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Analytics & Outlook -->
+                    <div class="glass-card chart-panel">
+                        <div class="card-head">
+                            <h3>Precipitation Trend</h3>
+                        </div>
+                        <div class="chart-container-medium">
+                            <canvas id="mainRainfallChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="glass-card dual-chart-panel">
+                        <div class="card-head">
+                            <h3>Environmental Analytics</h3>
+                        </div>
+                        <div class="chart-container-medium">
+                            <canvas id="atmosphericChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="glass-card prediction-panel">
+                        <!-- <div class="card-head">
+                            <i data-lucide="sparkles"></i>
+                            <h3>Weather Outlook</h3>
+                        </div> -->
+                        <div class="prediction-content">
+                            <div class="outlook-main">
+                                <div id="prediction-icon-box" class="prediction-icon">
+                                    <i data-lucide="sun"></i>
+                                </div>
+                                <div class="outlook-info">
+                                    <h4 id="prediction-title">Analyzing...</h4>
+                                    <p id="prediction-desc">Gathering sensor data...</p>
+                                </div>
+                            </div>
+                            <div class="probability-bars">
+                                <div class="prob-item">
+                                    <label>Flood Risk</label>
+                                    <div class="progress-bg"><div id="prob-flood" class="progress-fill safe" style="width: 0%"></div></div>
+                                </div>
+                                <div class="prob-item">
+                                    <label>Rain Probability</label>
+                                    <div class="progress-bg"><div id="prob-rain" class="progress-fill blue" style="width: 0%"></div></div>
+                                </div>
+                                <div class="prob-item">
+                                    <label>Water Level Risk</label>
+                                    <div class="progress-bg"><div id="prob-water" class="progress-fill teal" style="width: 0%"></div></div>
+                                </div>
+                            </div>
+                            <!-- Sensor Breakdown -->
+                            <div class="prediction-breakdown" id="prediction-breakdown">
+                                <div class="breakdown-row">
+                                    <span class="breakdown-label">Pressure Factor</span>
+                                    <span class="breakdown-value" id="factor-pressure">--</span>
+                                </div>
+                                <div class="breakdown-row">
+                                    <span class="breakdown-label">Humidity Factor</span>
+                                    <span class="breakdown-value" id="factor-humidity">--</span>
+                                </div>
+                                <div class="breakdown-row">
+                                    <span class="breakdown-label">Light/Cloud Factor</span>
+                                    <span class="breakdown-value" id="factor-light">--</span>
+                                </div>
+                                <div class="breakdown-row">
+                                    <span class="breakdown-label">Rain Trend Factor</span>
+                                    <span class="breakdown-value" id="factor-rain">--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="glass-card logs-panel">
+                        <div class="card-head between">
+                            <div class="flex-align">
+                                <h3>System Logs</h3>
+                            </div>
+                            <button id="clear-logs-btn" class="text-btn danger">Clear All</button>
+                        </div>
+                        <div id="logs-container" class="log-list">
+                            <div class="log-empty">No events recorded.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Section -->
+            <div id="section-analytics" class="view-section">
+                <div class="analytics-header">
+                    
+                    <div class="analytics-header-actions">
+                        <button type="button" id="admin-export-report-btn" class="csv-export-btn" title="Generate a print-ready PDF report of the filtered data (use your browser's Save as PDF)">
+                            <i data-lucide="file-text"></i>
+                            <span>Export Report (PDF)</span>
+                        </button>
+                        <button type="button" id="admin-export-csv-btn" class="csv-export-btn" title="Download filtered historical telemetry to CSV spreadsheet">
+                            <i data-lucide="file-spreadsheet"></i>
+                            <span>Export Data (.CSV)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Time Range / Date Choices -->
+                <div class="time-range-bar" id="admin-time-range-bar">
+                    <div class="time-range-pills">
+                        <button type="button" class="range-pill active" data-range="today">Today</button>
+                        <button type="button" class="range-pill" data-range="7d">Weekly (7D)</button>
+                        <button type="button" class="range-pill" data-range="30d">Monthly (30D)</button>
+                    </div>
+                    <div class="time-range-custom">
+                        <span class="custom-date-label"><i data-lucide="calendar"></i> Specific Day:</span>
+                        <input type="date" class="range-date-input" id="admin-chart-date-picker" />
+                    </div>
+                </div>
+
+                <div class="detailed-charts-grid">
+                    <div class="glass-card chart-panel-large">
+                        <div class="card-head"><h3>Temperature History</h3></div>
+                        <div class="chart-container-large"><canvas id="detailedTempChart"></canvas></div>
+                    </div>
+                    <div class="glass-card chart-panel-large">
+                        <div class="card-head"><h3>Humidity History</h3></div>
+                        <div class="chart-container-large"><canvas id="detailedHumChart"></canvas></div>
+                    </div>
+                    <div class="glass-card chart-panel-large">
+                        <div class="card-head"><h3>Pressure Trend</h3></div>
+                        <div class="chart-container-large"><canvas id="detailedPresChart"></canvas></div>
+                    </div>
+                    <div class="glass-card chart-panel-large">
+                        <div class="card-head"><h3>Rainfall Intensity</h3></div>
+                        <div class="chart-container-large"><canvas id="detailedRainChart"></canvas></div>
+                    </div>
+                    <div class="glass-card chart-panel-large">
+                        <div class="card-head"><h3>Water Level Trend</h3></div>
+                        <div class="chart-container-large"><canvas id="detailedWaterChart"></canvas></div>
+                    </div>
+                    <div class="glass-card chart-panel-large">
+                        <div class="card-head"><h3>Light &amp; Cloud Cover</h3></div>
+                        <div class="chart-container-large"><canvas id="detailedLightChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Section -->
+            <div id="section-users" class="view-section">
+                <div class="glass-card table-card">
+                    <div class="card-head">
+                        <h3>User Management</h3>
+                    </div>
+                    <div class="table-scroll">
+                        <table class="fg-table">
+                            <thead>
+                            <tr>
+                                <th>Account</th>
+                                <th>Phone</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                            </thead>
+                            <tbody id="user-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SIM Status Section -->
+            <div id="section-sim" class="view-section">
+                <div class="glass-card sim-card-view">
+                    <div class="card-head">
+                        <h3>SIM Diagnostics</h3>
+                    </div>
+                    <div class="sim-content">
+                        <div class="response-box">
+                            <span class="box-label">Last Network Response</span>
+                            <p id="sim-response">Waiting for device report...</p>
+                            <small>Checked: <span id="sim-last-check">--</span></small>
+                        </div>
+                        <div class="alert-banner danger" id="sim-expiry-alert" style="display: none;">
+                            <i data-lucide="alert-octagon"></i>
+                            <span>SIM balance or validity is low!</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Section -->
+            <div id="section-reports" class="view-section">
+                <div class="main-grid" id="reports-main-grid">
+                    <div class="glass-card full-width">
+                        <div class="card-head">
+                            <h3>7-Day Rainfall Trend</h3>
+                        </div>
+                        <div class="chart-container-large">
+                            <canvas id="weeklyRainChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- 7-Day API Forecast Cards (Imported from User Dashboard) -->
+                    <div class="glass-card full-width">
+                        <div class="card-head between">
+                            <h3>7-Day Weather Forecast</h3>
+                            <span class="live-indicator" id="forecast-location-label">Location: --</span>
+                        </div>
+                        <div class="forecast-days-grid" id="forecast-days-container">
+                            <div class="forecast-loading">
+                                <div class="skeleton-day" aria-hidden="true"></div>
+                                <div class="skeleton-day" aria-hidden="true"></div>
+                                <div class="skeleton-day" aria-hidden="true"></div>
+                                <div class="skeleton-day" aria-hidden="true"></div>
+                                <div class="skeleton-day" aria-hidden="true"></div>
+                                <div class="skeleton-day" aria-hidden="true"></div>
+                                <div class="skeleton-day" aria-hidden="true"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hourly Precipitation Chart -->
+                    <div class="glass-card full-width">
+                        <div class="card-head">
+                            <h3>7-Day Precipitation Forecast</h3>
+                        </div>
+                        <div class="chart-container-medium">
+                            <canvas id="hourlyPrecipChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="glass-card">
+                        <div class="card-head">
+                            <h3>Weekly Summary Report</h3>
+                        </div>
+                        <div class="report-stats">
+                            <div class="report-item">
+                                <span>Total Weekly Rainfall</span>
+                                <strong id="weekly-total-rain">0.0 mm</strong>
+                            </div>
+                            <div class="report-item">
+                                <span>Average Temperature</span>
+                                <strong id="weekly-avg-temp">0.0 °C</strong>
+                            </div>
+                            <div class="report-item">
+                                <span>Peak Intensity</span>
+                                <strong id="weekly-peak-rain">0.0 mm</strong>
+                            </div>
+                            <div class="report-item">
+                                <span>Days with Rain</span>
+                                <strong id="weekly-rain-days">0</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card">
+                        <div class="card-head">
+                            <h3>Model Prediction Parameters</h3>
+                        </div>
+                        <div class="prediction-params-list">
+                            <div class="param-row">
+                                <label>Z-R Relationship (Rain)</label>
+                                <span id="param-zr">a=200, b=1.6</span>
+                            </div>
+                            <div class="param-row">
+                                <label>Saturation Index</label>
+                                <span id="param-saturation">0.42</span>
+                            </div>
+                            <div class="param-row">
+                                <label>Forecast Confidence</label>
+                                <span id="param-confidence">88%</span>
+                            </div>
+                            <p class="param-note">Values are calculated using the localized anticipatory network model.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div id="section-settings" class="view-section">
+                <div class="settings-grid">
+                    <!-- ══════════════════════════════════════════════ -->
+                    <!-- Alert Command Center (Config + Maintenance)    -->
+                    <!-- ══════════════════════════════════════════════ -->
+                    <div class="glass-card config-panel alert-command-panel">
+                        <div class="card-head between">
+                            <div class="flex-align">
+                                <i data-lucide="siren"></i>
+                                <h3>Alert Command Center</h3>
+                            </div>
+                            <button type="button" id="info-alert-btn" class="text-btn card-info-btn" title="Learn about the Alert Command Center" aria-label="Learn about the Alert Command Center">
+                                <i data-lucide="info"></i>
+                            </button>
+                        </div>
+                                                <p class="setting-desc">Tune the three-tier alert thresholds, edit each broadcast message, and dispatch manual SMS blasts — all from one console.</p>
+                        <div class="form-stack">
+
+                            <!-- Level 1 Configuration -->
+                            <div class="form-group alert-level-box l1" data-alert-level="1">
+                                <div class="alb-head">
+                                    <span class="alb-label">Level 1 · Advisory Alert</span>
+                                    <span class="alb-pill">Early Watch</span>
+                                </div>
+                                <div class="alb-threshold-grid">
+                                    <div>
+                                        <label class="alb-field-label">Total Rain (mm)</label>
+                                        <input type="number" id="alert-l1-rain-input" class="settings-input" placeholder="e.g. 20" step="0.1">
+                                    </div>
+                                    <div>
+                                        <label class="alb-field-label" id="water-rise-label-l1">Water Rise (cm/min)</label>
+                                        <input type="number" id="alert-l1-water-rise-input" class="settings-input" placeholder="e.g. 0.5" step="0.1">
+                                    </div>
+                                    <div>
+                                        <label class="alb-field-label" id="rain-intensity-label-l1">Rain Intensity (mm/h)</label>
+                                        <input type="number" id="alert-l1-rain-rate-input" class="settings-input" placeholder="e.g. 7.5" step="0.1">
+                                    </div>
+                                    <div>
+                                        <label class="alb-field-label">Water Level (cm)</label>
+                                        <input type="number" id="alert-l1-water-level-input" class="settings-input" placeholder="0 = off" step="0.1">
+                                        </div>
+                                </div>
+                                <div>
+                                    <label class="alb-field-label">Advisory Broadcast Message</label>
+                                    <textarea id="alert-msg-l1-input" class="settings-input" maxlength="133" placeholder="Advisory message content (e.g. Light to moderate rain recorded)..."></textarea>
+                                </div>
+                                <button type="button" id="send-sms-l1-btn" class="alb-send-btn l1-send">
+                                    <i data-lucide="send"></i> Send L1 SMS Manually
+                                </button>
+                            </div>
+
+                            <!-- Level 2 Configuration -->
+                            <div class="form-group alert-level-box l2" data-alert-level="2">
+                                <div class="alb-head">
+                                    <span class="alb-label">Level 2 · Warning Alert</span>
+                                    <span class="alb-pill">Preparedness</span>
+                                </div>
+                                <div class="alb-threshold-grid">
+                                    <div>
+                                        <label class="alb-field-label">Total Rain (mm)</label>
+                                        <input type="number" id="alert-l2-rain-input" class="settings-input" placeholder="e.g. 50" step="0.1">
+                                    </div>
+                                    <div>
+                                        <label class="alb-field-label" id="water-rise-label-l2">Water Rise (cm/min)</label>
+                                        <input type="number" id="alert-l2-water-rise-input" class="settings-input" placeholder="e.g. 1" step="0.1">
+                                    </div>
+                                    <div>
+                                        <label class="alb-field-label" id="rain-intensity-label-l2">Rain Intensity (mm/h)</label>
+                                        <input type="number" id="alert-l2-rain-rate-input" class="settings-input" placeholder="e.g. 15" step="0.1">
+                                    </div>
+                                    <div>
+                                        <label class="alb-field-label">Water Level (cm)</label>
+                                        <input type="number" id="alert-l2-water-level-input" class="settings-input" placeholder="0 = off" step="0.1">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="alb-field-label">Warning Broadcast Message</label>
+                                    <textarea id="alert-msg-l2-input" class="settings-input" maxlength="133" placeholder="Warning message content (e.g. Heavy rainfall threshold approaching)..."></textarea>
+                                </div>
+                                <button type="button" id="send-sms-l2-btn" class="alb-send-btn l2-send">
+                                    <i data-lucide="send"></i> Send L2 SMS Manually
+                                </button>
+                            </div>
+
+                            <!-- Level 3 Configuration -->
+                            <div class="form-group alert-level-box l3" data-alert-level="3">
+                                <div class="alb-head">
+                                    <span class="alb-label">Level 3 · Critical Emergency</span>
+                                    <span class="alb-pill">Evacuation</span>
+                                </div>
+                                <div class="alb-threshold-grid">
+                                    <div>
+                                        <label class="alb-field-label">Total Rain (mm)</label>
+                                        <input type="number" id="alert-l3-rain-input" class="settings-input" placeholder="e.g. 100" step="0.1">
+                                    </div>
+                                    <div>
+                                        <label class="alb-field-label" id="water-rise-label-l3">Water Rise (cm/min)</label>
+                                        <input type="number" id="alert-l3-water-rise-input" class="settings-input" placeholder="e.g. 2" step="0.1">
+                                    </div>
+                                    <div>
+                                        <label class="alb-field-label" id="rain-intensity-label-l3">Rain Intensity (mm/h)</label>
+                                        <input type="number" id="alert-l3-rain-rate-input" class="settings-input" placeholder="e.g. 30" step="0.1">
+                                    </div>
+                                    <div>
+                                        <label class="alb-field-label">Water Level (cm)</label>
+                                        <input type="number" id="alert-l3-water-level-input" class="settings-input" placeholder="0 = off" step="0.1">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="alb-field-label">Emergency Broadcast Message</label>
+                                    <textarea id="alert-msg-l3-input" class="settings-input" maxlength="133" placeholder="Critical emergency message (e.g. Flash flood risk imminent! Move to evacuation center)"></textarea>
+                                </div>
+                                <button type="button" id="send-sms-l3-btn" class="alb-send-btn l3-send">
+                                    <i data-lucide="send"></i> Send L3 SMS Manually
+                                </button>
+                            </div>
+
+                            <!-- Save -->
+                            <button id="save-msg-btn-settings" class="btn-glow full">
+                                <i data-lucide="save" style="width:16px;height:16px;vertical-align:-3px;margin-right:6px;"></i>Save Alert Levels &amp; Messages
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- System Behavior -->
+                    <div class="glass-card system-behavior-panel">
+                        <div class="card-head between">
+                            <div class="flex-align">
+                                <i data-lucide="sliders-horizontal"></i>
+                                <h3>System Behavior</h3>
+                            </div>
+                            <button type="button" id="info-sysb-btn" class="text-btn card-info-btn" title="Learn about System Behavior" aria-label="Learn about System Behavior">
+                                <i data-lucide="info"></i>
+                            </button>
+                        </div>
+                        <p class="setting-desc">Control alert cooldowns, history logging cadence, maintenance mode, and the rate computation (units, windows, smoothing).</p>
+                        <div class="sysb-grid">
+                            <div class="form-group sysb-field">
+                                <div class="sysb-field-head">
+                                    <i data-lucide="timer"></i>
+                                    <label for="alert-cooldown-input">Alert Cooldown</label>
+                                </div>
+                                <div class="maint-cooldown-row">
+                                    <input type="number" id="alert-cooldown-input" class="input-control" value="5" step="0.5" min="0">
+                                    <span class="maint-unit">Hours</span>
+                                </div>
+                                <small class="maint-hint">Wait time between recurring emergency SMS alerts.</small>
+                            </div>
+
+                            <div class="form-group sysb-field">
+                                <div class="sysb-field-head">
+                                    <i data-lucide="database"></i>
+                                    <label for="history-interval-input">History Log Interval</label>
+                                </div>
+                                <div class="maint-cooldown-row">
+                                    <input type="number" id="history-interval-input" class="input-control" value="60" step="1" min="1" max="1440">
+                                    <span class="maint-unit">Minutes</span>
+                                </div>
+                                <small class="maint-hint">How often it saves record</small>
+                            </div>
+                        </div>
+
+                        <div class="maint-toggle-box">
+                            <input type="checkbox" id="maintenance-toggle" class="maint-toggle-checkbox">
+                            <label for="maintenance-toggle" class="maint-toggle-track"><span class="maint-toggle-thumb"></span></label>
+                            <div class="maint-toggle-text">
+                                <strong>Maintenance Mode</strong>
+                                <small>Suspends all automatic SMS alerts.</small>
+                            </div>
+                            <span class="sysb-state" id="maintenance-state-tag" data-state="off">Inactive</span>
+                        </div>
+
+                        <!-- Sensor Data Reset (tipping bucket + ultrasonic, GPS untouched) -->
+                        <div class="reset-sensor-box">
+                            <div class="maint-toggle-text">
+                                <strong>Reset Sensor Data</strong>
+                                <small>Zeroes daily rain, bucket tips, rain rate, and the ultrasonic water-level/rise history on the device.</small>
+                            </div>
+                            <button type="button" id="reset-sensor-btn" class="reset-sensor-btn">
+                                <i data-lucide="rotate-ccw"></i> Reset
+                            </button>
+                        </div>
+
+                        <!-- Rate Computation (units & sliding windows) -->
+                        <div class="rate-settings-box">
+                            <div class="rate-settings-box-head">
+                                <div class="maint-toggle-text">
+                                    <strong>Rate Computation</strong>
+                                    <small>Pick the rain-rate and water-rise units plus their sliding windows.</small>
+                                </div>
+                                <button type="button" id="rate-defaults-btn" class="rate-defaults-btn" title="Restore recommended defaults (Rain mm/h · 10 min, Rise cm/min · 5 min, Smoothing 2)" aria-label="Reset rate computation to recommended defaults">
+                                    <i data-lucide="rotate-ccw"></i> Defaults
+                                </button>
+                            </div>
+                            <div class="rate-settings-grid">
+                                <div class="sysb-field">
+                                    <div class="sysb-field-head"><i data-lucide="droplets"></i><label>Rain Unit</label></div>
+                                    <select id="rain-rate-unit-input" class="settings-input">
+                                        <option value="mm/h">mm/h</option>
+                                        <option value="mm/min">mm/min</option>
+                                    </select>
+                                </div>
+                                <div class="sysb-field">
+                                    <div class="sysb-field-head"><i data-lucide="clock-3"></i><label>Rain Window</label></div>
+                                    <select id="rain-rate-window-input" class="settings-input">
+                                        <option value="10">10 min</option>
+                                        <option value="5">5 min</option>
+                                        <option value="60">60 min</option>
+                                    </select>
+                                </div>
+                                <div class="sysb-field">
+                                    <div class="sysb-field-head"><i data-lucide="waves"></i><label>Rise Unit</label></div>
+                                    <select id="rise-rate-unit-input" class="settings-input">
+                                        <option value="cm/min">cm/min</option>
+                                        <option value="cm/h">cm/h</option>
+                                    </select>
+                                </div>
+                                <div class="sysb-field">
+                                    <div class="sysb-field-head"><i data-lucide="clock-3"></i><label>Rise Window</label></div>
+                                    <select id="rise-rate-window-input" class="settings-input">
+                                        <option value="5">5 min</option>
+                                        <option value="10">10 min</option>
+                                        <option value="60">60 min</option>
+                                    </select>
+                                </div>
+                                <div class="sysb-field">
+                                    <div class="sysb-field-head"><i data-lucide="filter"></i><label>Rise Smoothing</label></div>
+                                    <select id="rise-smooth-input" class="settings-input">
+                                        <option value="2">2 min</option>
+                                        <option value="1">1 min</option>
+                                        <option value="5">5 min</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button id="save-alert-config-btn" class="btn-glow full maint-apply-btn">
+                            <i data-lucide="settings-2" style="width:16px;height:16px;vertical-align:-3px;margin-right:6px;"></i>
+                            Apply System State
+                        </button>
+                    </div>
+
+                    <!-- Hardware & Transmission -->
+                    <div class="glass-card hardware-settings-panel sim-control-panel">
+                        <div class="card-head between">
+                            <div class="flex-align">
+                                <i data-lucide="cpu"></i>
+                                <h3>Hardware & Transmission</h3>
+                            </div>
+                            <button type="button" id="info-hw-btn" class="text-btn card-info-btn" title="Learn about Hardware, Transmission & Model Config" aria-label="Learn about Hardware, Transmission & Model Config">
+                                <i data-lucide="info"></i>
+                            </button>
+                        </div>
+                        <div class="form-stack">
+                            <!-- WiFi Fallback Section -->
+                            <div class="form-group wifi-fallback-box">
+                                <label><i data-lucide="wifi"></i> WiFi Fallback Configuration</label>
+                                <div class="input-wrapper wifi-inputs">
+                                    <input type="text" id="wifi-ssid-input" class="input-control" placeholder="WiFi SSID (Name)…" autocomplete="off" spellcheck="false">
+                                    <input type="password" id="wifi-pass-input" class="input-control" placeholder="WiFi Password…" autocomplete="new-password">
+                                </div>
+                                <p class="field-hint">Needs active SIM load first to retrieve saved WiFi credentials from the cloud. Only 2.4GHz is supported.</p>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Sensor Calibration Offsets</label>
+                                <div class="settings-subgrid">
+                                    <div>
+                                        <label class="sub-label" for="temp-offset-input">Temperature (°C) - BME280</label>
+                                        <input type="number" id="temp-offset-input" class="input-control" placeholder="+/- °C" step="0.1">
+                                    </div>
+                                    <div>
+                                        <label class="sub-label" for="water-offset-input">Adjustment - JSN-SR04T</label>
+                                        <input type="number" id="water-offset-input" class="input-control" placeholder="+/- cm" step="1">
+                                    </div>
+                                </div>
+                                <div style="margin-top: 10px;">
+                                    <label class="sub-label" for="mount-height-input">Sensor-to-Ground Distance (cm)</label>
+                                    <input type="number" id="mount-height-input" class="input-control" placeholder="e.g. 200" step="1">
+                                </div>
+                            </div>
+                            <!-- Model Calibration (inside Hardware & Transmission) -->
+                            <div class="hw-ai-section">
+                                <div class="hw-sub-head">
+                                    <label class="hw-sub-label">Model Calibration</label>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Z-R Relationship Constants (R = aZ^b)</label>
+                                    <div class="input-wrapper">
+                                        <input type="number" id="param-a-input" class="settings-input" placeholder="a (e.g. 200)" step="1">
+                                        <input type="number" id="param-b-input" class="settings-input" placeholder="b (e.g. 1.6)" step="0.1">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Prediction Weights (Total 100%)</label>
+                                    <div class="settings-subgrid">
+                                        <div>
+                                            <label class="sub-label" for="weight-pres">Pressure (%)</label>
+                                            <input type="number" id="weight-pres" class="settings-input" value="40">
+                                        </div>
+                                        <div>
+                                            <label class="sub-label" for="weight-hum">Humidity (%)</label>
+                                            <input type="number" id="weight-hum" class="settings-input" value="20">
+                                        </div>
+                                        <div>
+                                            <label class="sub-label" for="weight-light">Light (%)</label>
+                                            <input type="number" id="weight-light" class="settings-input" value="20">
+                                        </div>
+                                        <div>
+                                            <label class="sub-label" for="weight-rain">Rain (%)</label>
+                                            <input type="number" id="weight-rain" class="settings-input" value="20">
+                                        </div>
+                                </div>
+                            </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Reference Baselines</label>
+                                <div class="settings-subgrid">
+                                    <div>
+                                        <label class="sub-label" for="max-lux-input">Max Clear Lux</label>
+                                        <input type="number" id="max-lux-input" class="input-control" placeholder="e.g. 65000">
+                                        <p class="field-hint">Recorded peak lux at noon on a sunny day.</p>
+                                    </div>
+                                    <div>
+                                        <label class="sub-label" for="base-pres-input">Base Pressure (hPa)</label>
+                                        <input type="number" id="base-pres-input" class="input-control" placeholder="e.g. 1013" step="0.1">
+                                        <p class="field-hint">Standard sea-level pressure for your elevation.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <button id="save-hw-config-btn" class="btn-glow full">Update Hardware Sync</button>
+                        </div>
+                    </div>
+
+                    <!-- Data Simulation (Manual Override) -->
+                    <div class="glass-card sim-control-panel">
+                        <div class="card-head">
+                            <i data-lucide="flask-conical"></i>
+                            <h3>Data Simulation (Manual Override)</h3>
+                        </div>
+                        <p class="setting-desc">Manually push sensor values to test system responsiveness and alerts.</p>
+
+                        <div class="sim-form-grid">
+                            <div class="form-group span-4">
+                                <label for="sim-datetime">Simulated Date &amp; Time (Optional)</label>
+                                <div class="sim-datetime-row">
+                                    <input type="datetime-local" id="sim-datetime">
+                                    <button type="button" id="set-now-sim" class="text-btn success boxed">Set Now</button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Rainfall (mm)</label>
+                                <input type="number" id="sim-rain" step="0.1" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Rain Rate (mm/h)</label>
+                                <input type="number" id="sim-rain-rate" step="0.1" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Water Level (cm)</label>
+                                <input type="number" id="sim-water" step="0.1" value="10">
+                            </div>
+                            <div class="form-group">
+                                <label>Water Rise (cm/h)</label>
+                                <input type="number" id="sim-water-rise" step="0.1" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Temp (°C)</label>
+                                <input type="number" id="sim-temp" step="0.1" value="28">
+                            </div>
+                            <div class="form-group">
+                                <label>Light (lux)</label>
+                                <input type="number" id="sim-light" value="30000">
+                            </div>
+                            <div class="form-group">
+                                <label>Hum (%)</label>
+                                <input type="number" id="sim-hum" value="75">
+                            </div>
+                            <div class="form-group">
+                                <label>Pres (hPa)</label>
+                                <input type="number" id="sim-pres" step="0.1" value="1013">
+                            </div>
+                        </div>
+                        <button id="push-sim-data" class="btn-glow full warning">Push Test Data</button>
+                        <small class="warning-note">Note: This will temporarily override actual sensor data on all dashboards.</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emergency Directory Manager Section -->
+            <div id="section-emergency" class="view-section">
+                <div class="analytics-header" style="justify-content: flex-end;">
+                    <button type="button" id="save-emergency-directory-btn" class="csv-export-btn" style="background: #275385; box-shadow: 0 2px 8px rgba(44, 95, 151, 0.25);">
+                        <i data-lucide="save"></i> Save &amp; Publish Directory
+                    </button>
+                </div>
+
+                <div class="form-stack">
+                    <!-- Hotlines Manager Card -->
+                    <div class="glass-card">
+                        <div class="card-head between wrap">
+                            <div class="flex-align">
+                                <i data-lucide="phone-outgoing"></i>
+                                <h3>Emergency Hotlines</h3>
+                            </div>
+                            <button type="button" id="add-hotline-btn" class="text-btn success boxed">
+                                <i data-lucide="plus-circle"></i> Add Hotline
+                            </button>
+                        </div>
+                        <p class="setting-desc">Configure the active phone numbers and agency names displayed on all resident devices.</p>
+                        
+                        <div class="table-scroll" style="margin-top: 1rem;">
+                            <table class="fg-table" id="admin-hotlines-table">
+                                <thead>
+                                    <tr>
+                                        <th>Agency / Organization</th>
+                                        <th>Display Phone Number</th>
+                                        <th>Direct Dial Number</th>
+                                        <th>Role / Department</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-hotlines-tbody">
+                                    <!-- Populated dynamically via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Evacuation Shelters Manager Card -->
+                    <div class="glass-card">
+                        <div class="card-head between wrap">
+                            <div class="flex-align">
+                                <i data-lucide="home"></i>
+                                <h3>Designated Evacuation Shelters</h3>
+                            </div>
+                            <button type="button" id="add-shelter-btn" class="text-btn success boxed">
+                                <i data-lucide="plus-circle"></i> Add Evacuation Shelter
+                            </button>
+                        </div>
+                        <p class="setting-desc">Update shelter operational status (Open, Full, Closed), capacity count, and available amenities.</p>
+
+                        <div id="admin-shelters-container" class="shelters-grid">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Hardware & Transmission Configuration Guide Modal -->
+    <div id="hw-guide-modal" class="guide-modal-overlay" hidden>
+        <div class="guide-modal" role="dialog" aria-modal="true" aria-labelledby="hw-guide-title">
+            <div class="guide-modal-head">
+                <h3 id="hw-guide-title">HARDWARE &amp; TRANSMISSION CONFIGURATION GUIDE</h3>
+                <button type="button" id="hw-guide-close" class="guide-modal-close" aria-label="Close guide"><i data-lucide="x"></i></button>
+            </div>
+            <div class="guide-modal-body">
+                <h4>1. WiFi Fallback Configuration</h4>
+                <ul>
+                    <li>The device primarily sends data over the SIM / GSM network.</li>
+                    <li><strong>It needs active SIM load (data credits) FIRST</strong> so it can reach the cloud and retrieve the WiFi credentials saved in this panel.</li>
+                    <li>Once the SSID &amp; password are fetched, the device uses WiFi as a fallback when the GSM signal is weak or unavailable.</li>
+                    <li><strong>NOTE:</strong> Only 2.4GHz networks can be connected — 5GHz networks are not supported by the module.</li>
+                </ul>
+
+                <h4>2. Sensor Calibration Offsets</h4>
+                <ul>
+                    <li><strong>Temperature (°C) - BME280:</strong> Adjust for internal board heat (e.g., -2.0 if the board sits inside an enclosure).</li>
+                    <li><strong>Adjustment - JSN-SR04T:</strong> Fine-trim after comparing the dashboard water level with a real staff gauge (device allows +/-100 cm).</li>
+                </ul>
+
+                <h4>3. Sensor-to-Ground Distance</h4>
+                <ul>
+                    <li>Total distance from the sensor face to the dry ground. Mount the sensor at least 25 cm above the highest expected water - the JSN-SR04T has a 25 cm blind zone and cannot measure anything closer, so a lower mount loses readings exactly when flooding starts.</li>
+                    <li>Device range: 50-1000 cm.</li>
+                    <li>Used to convert the sensor reading into actual water depth <em>(Depth = Distance to Ground − Sensor Reading)</em>.</li>
+                </ul>
+
+                <h4>4. Reference Baselines</h4>
+                <ul>
+                    <li><strong>Max Clear Lux:</strong> Peak brightness at noon on a clear sunny day; detects cloud cover and approaching storms.</li>
+                    <li><strong>Base Pressure:</strong> Standard sea-level pressure for your elevation; pressure drops signal incoming rain.</li>
+                </ul>
+
+                <h4>5. Model Calibration (defines the 0–10 flood risk score)</h4>
+                <ul>
+                    <li><strong>Z-R Relationship (R = aZ^b):</strong> Standard meteorological formula for rainfall intensity.
+                        <ul>
+                            <li><em>'a' constant:</em> Typically 200 (steady rain) to 300 (tropical storms).</li>
+                            <li><em>'b' constant:</em> Typically 1.6. Lowering it makes the model more sensitive to heavy rain.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Prediction Weights (should total 100%):</strong>
+                        <ul>
+                            <li><em>Pressure:</em> High weight enables "anticipatory" warnings before it rains.</li>
+                            <li><em>Humidity:</em> Weights the saturation level of the atmosphere.</li>
+                            <li><em>Light:</em> Proxy for cloud cover; drops during storm entry.</li>
+                            <li><em>Rain:</em> Weighted "reactive" reporting of the actual rain sensor data.</li>
+                        </ul>
+                    </li>
+                    <li>Tuning these lets the network adapt to your city's specific climate.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="alert-guide-modal" class="guide-modal-overlay" hidden>
+        <div class="guide-modal" role="dialog" aria-modal="true" aria-labelledby="alert-guide-title">
+            <div class="guide-modal-head">
+                <h3 id="alert-guide-title">ALERT COMMAND CENTER GUIDE</h3>
+                <button type="button" id="alert-guide-close" class="guide-modal-close" aria-label="Close guide"><i data-lucide="x"></i></button>
+            </div>
+            <div class="guide-modal-body">
+                <h4>How the Three-Tier System Works</h4>
+                <ul>
+                    <li>The device checks every sensor reading against <strong>Level 1 → Level 2 → Level 3</strong> and fires the <strong>highest</strong> level matched.</li>
+                    <li>A higher level always overrides the cooldown of a lower one, so escalation is never delayed by a quieter alert that fired earlier.</li>
+                    <li>Each level sends its own SMS broadcast to every registered subscriber and shows up in the dashboards with its own color.</li>
+                </ul>
+
+                <h4>1. Total Rain (mm)</h4>
+                <ul>
+                    <li>The <strong>running rainfall total for today</strong>. When it reaches this value, the level triggers.</li>
+                    <li>It resets automatically at midnight, so it always measures the current day's accumulation.</li>
+                    <li>Higher level = more rain required (e.g. 20 mm for Advisory, 50 mm for Warning, 100 mm for Emergency).</li>
+                </ul>
+
+                <h4>2. Water Rise (cm/min)</h4>
+                <ul>
+                    <li>How many centimeters the river/water level climbs <strong>per minute</strong>. Start with 0.5 (Advisory), 1.0 (Warning), 2.0 (Emergency) and calibrate with site data.</li>
+                    <li>A fast rise triggers the level <strong>even without heavy rain</strong> — this is the earliest flood signal upstream.</li>
+                </ul>
+
+                <h4>3. Rain Intensity (mm/h)</h4>
+                <ul>
+                    <li>The instantaneous rain rate right now (how hard it is raining at this moment).</li>
+                    <li>Optional override: if the rain gets this intense, the level fires immediately without waiting for the daily total.</li>
+                </ul>
+
+                <h4>4. Water Level (cm)</h4>
+                <ul>
+                    <li>The absolute water depth. Reaching it forces the level immediately.</li>
+                    <li>Set to <strong>0 to disable</strong> this trigger and rely on the other thresholds.</li>
+                    <li>Max measurable: <strong><span id="stage-max-hint">175</span> cm</strong> (sensor height − 25 cm blind zone).</li>
+                </ul>
+
+                <h4>5. Broadcast Messages</h4>
+                <ul>
+                    <li>The SMS text sent to all subscribers when that level fires — keep it short and actionable.</li>
+                    <li>Maximum <strong>133 characters</strong> (the SMS limit after adding the alert header).</li>
+                </ul>
+
+                <h4>6. Manual Send &amp; Save</h4>
+                <ul>
+                    <li><strong>Send L1/L2/L3 SMS Manually:</strong> dispatches that level's message to all subscribers right away, without waiting for a trigger — useful for drills and direct announcements.</li>
+                    <li><strong>Save Alert Levels &amp; Messages:</strong> persists every threshold and message to the cloud. The device picks up the new settings on its next sync — no reflash needed.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="sysb-guide-modal" class="guide-modal-overlay" hidden>
+        <div class="guide-modal" role="dialog" aria-modal="true" aria-labelledby="sysb-guide-title">
+            <div class="guide-modal-head">
+                <h3 id="sysb-guide-title">SYSTEM BEHAVIOR GUIDE</h3>
+                <button type="button" id="sysb-guide-close" class="guide-modal-close" aria-label="Close guide"><i data-lucide="x"></i></button>
+            </div>
+            <div class="guide-modal-body">
+                <h4>Apply System State</h4>
+                <ul>
+                    <li>Saves <strong>everything in this panel at once</strong> — cooldowns, maintenance mode, history cadence, and the Rate Computation settings below. The device picks it up on its next config sync (seconds on Wi-Fi, ~30 s on cellular).</li>
+                </ul>
+
+                <h4>1. Alert Cooldown (hours)</h4>
+                <ul>
+                    <li>Minimum time between two automatic SMS broadcasts of the <strong>same</strong> level.</li>
+                    <li>A <strong>higher</strong> alert level always overrides the cooldown — escalation is never delayed.</li>
+                    <li class="guide-rec"><strong>Recommended: 5 hours</strong> (the default). Use 1–2 h only if you want more frequent same-level updates during long storms.</li>
+                </ul>
+
+                <h4>2. Maintenance Mode</h4>
+                <ul>
+                    <li>Suspends <strong>all automatic SMS alerts</strong> for drills, maintenance, or testing — telemetry keeps flowing to the dashboards.</li>
+                    <li>Manual sends from the Alert Command Center still work while maintenance is on.</li>
+                    <li class="guide-rec"><strong>Recommended: OFF.</strong> Switch on only for sensor work, drills, or planned downtime — and back off right after.</li>
+                </ul>
+
+                <h4>3. History Cadence (min)</h4>
+                <ul>
+                    <li>How often a snapshot is written to the <strong>weather_history</strong> archive (default 60).</li>
+                    <li>Alert escalations always log immediately, no matter what this is set to.</li>
+                    <li class="guide-rec"><strong>Recommended: 60 minutes</strong> (the default). 15–30 min gives finer history graphs but grows the archive 2–4× faster.</li>
+                </ul>
+
+                <h4>4. Rate Computation — Units</h4>
+                <ul>
+                    <li><strong>Rain Unit (mm/h | mm/min):</strong> the unit the rain rate is reported and displayed in. Rain-intensity thresholds are always compared in canonical mm/h.</li>
+                    <li><strong>Rise Unit (cm/min | cm/h):</strong> the unit the water-rise rate is reported and displayed in. Rise thresholds are always compared in canonical cm/min.</li>
+                    <li>Threshold values are <strong>always stored in the canonical units</strong> (rain mm/h, rise cm/min) — the admin inputs and both dashboards convert automatically, so a threshold of 1 always means 1 cm/min no matter which unit you display.</li>
+                    <li class="guide-rec"><strong>Recommended: keep the defaults mm/h + cm/min.</strong> Switch to per-minute units only if your team reports in those terms — and re-read the thresholds after switching.</li>
+                </ul>
+
+                <h4>5. Rate Computation — Sliding Windows</h4>
+                <ul>
+                    <li><strong>Rain Window (5/10/60 min):</strong> how much tip history the rain rate averages. Longer = smoother and calmer; shorter = snappier peaks.</li>
+                    <li><strong>Rise Window (5/10/60 min):</strong> how far back the level change is measured. Longer = steadier numbers; shorter = faster reaction.</li>
+                    <li><strong>Rise Smoothing (1/2/5 min):</strong> running average that cancels surface waves before the rate math sees them.</li>
+                    <li class="guide-rec"><strong>Recommended: Rain 10 / Rise 5 / Smoothing 2</strong> (the defaults — balanced). Calmer numbers during long storms: Rain 10 / Rise 10 / Smoothing 5. Fastest flash-flood reaction: Rain 5 / Rise 5 / Smoothing 1.</li>
+                    <li><strong>Important:</strong> a longer window makes the same burst read as a <em>smaller</em> rate (e.g. a +30 cm surge reads ~5.8 cm/min on a 5-min window but only ~0.5 cm/min on a 60-min window). So if you leave the window changed permanently, <strong>re-tune your Water Rise thresholds</strong> from your site's real history on that window — keep the defaults unless you have a reason to switch.</li>
+                </ul>
+
+                <h4>6. Changing Units or Windows</h4>
+                <ul>
+                    <li>When you change any unit, window, or smoothing setting, the device <strong>clears its rate histories</strong> so no data mixes between schemes (logged as RATE_SCHEME in the System Logs).</li>
+                    <li>Re-warming takes as long as the longest window you chose. Daily rain totals and GPS are never touched by this reset.</li>
+                </ul>
+
+                <h4>7. Reset Sensor Data</h4>
+                <ul>
+                    <li>Zeroes the tipping-bucket data (daily rain, tips, rain rate) and clears the ultrasonic rise history on the device — one click, no reflash.</li>
+                    <li>Use it after phantom tips, EMI glitches, or to re-baseline during testing. <strong>GPS and alert state are never touched.</strong></li>
+                    <li class="guide-rec"><strong>Recommended: use sparingly</strong> — after phantom-tip bursts or EMI glitches, never during a real flood (it wipes today's rain total mid-event).</li>
+                    <li>Every reset is logged to the System Logs terminal (SENSOR_RESET) with the amount of data that was cleared.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="admin-dashboard.js"></script>
+</body>
+</html>

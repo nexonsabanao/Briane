@@ -1,0 +1,1284 @@
+/* ═══════════════════════════════════════════════════════════════
+   BRIANE — Refined Glass Authentication Styles
+   ═══════════════════════════════════════════════════════════════ */
+
+.auth-page {
+    background: transparent !important;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    /* flex-start + auto margins on .auth-wrapper = "safe centering": the card
+       stays centred when there is room, but never clips its own top/bottom on
+       short viewports (landscape phones) or when the card is taller than the
+       screen. Plain `align-items: center` clips in both cases. */
+    align-items: flex-start;
+    justify-content: center;
+    padding: 20px;
+    font-family: var(--font-body);
+}
+
+.auth-wrapper {
+    width: 100%;
+    max-width: 440px;
+    /* Pairs with .auth-page's flex-start: auto margins re-centre the card when
+       there's spare vertical space, and collapse to 0 when there isn't (so the
+       card grows downward from the top instead of being clipped on both ends). */
+    margin: auto;
+    animation: fadeInScale 0.45s var(--ease-glass, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+@keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.96) translateY(8px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ── Glass Card ── */
+.auth-card {
+    background: var(--glass-2);
+    backdrop-filter: var(--glass-blur-3, blur(24px) saturate(190%));
+    -webkit-backdrop-filter: var(--glass-blur-3, blur(24px) saturate(190%));
+    border-radius: var(--r-xl, 26px);
+    padding: 2.5rem;
+    box-shadow: var(--shadow-lg, 0 4px 8px rgba(28, 25, 23, 0.05), 0 24px 48px -16px rgba(28, 25, 23, 0.16));
+    border: 1px solid var(--hairline);
+    outline: 1px solid rgba(28, 25, 23, 0.04);
+    transition: box-shadow 0.5s var(--ease-glass, ease);
+}
+
+/* ── Brand ── */
+.auth-logo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.75rem;
+}
+
+.brand-logo {
+    width: 60px;
+    height: 60px;
+    background: var(--brand-gradient);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 10px 22px -6px rgba(21, 94, 117, 0.45);
+}
+
+.brand-logo img { width: 32px; height: 32px; object-fit: contain; }
+
+.brand-logo.admin,
+.splash-logo-box.admin {
+    background: var(--primary-dark);
+    box-shadow: 0 10px 22px -6px rgba(21, 94, 117, 0.5);
+}
+
+/* ── Headings ── */
+.auth-card h1 {
+    font-size: 1.7rem;
+    font-weight: 700;
+    text-align: center;
+    color: var(--ink-900, var(--stone-900));
+    letter-spacing: -0.03em;
+    margin-bottom: 0.5rem;
+}
+
+.auth-card > p,
+#login-view > p,
+#forgot-view > p {
+    text-align: center;
+    color: var(--ink-500, var(--stone-500));
+    margin-bottom: 2rem;
+    font-size: 0.92rem;
+}
+
+.auth-card h3 {
+    font-weight: 700;
+    color: var(--ink-900, var(--stone-900));
+    letter-spacing: -0.02em;
+}
+
+/* ── Inputs ── */
+.input-group { margin-bottom: 1.35rem; }
+
+.input-group label {
+    display: block;
+    font-size: 0.74rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-500, var(--stone-500));
+    margin-bottom: 0.5rem;
+}
+
+.password-wrapper { position: relative; }
+
+.input-control.has-toggle { padding-right: 44px; }
+
+.toggle-password {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--ink-400, var(--stone-400));
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    border-radius: 8px;
+    transition: color 0.2s ease, background 0.2s ease;
+}
+
+.toggle-password:hover { color: var(--primary); background: rgba(44, 95, 151, 0.08); }
+
+/* Keep the eye button vertically centered while pressed. The global
+   `button:not(:disabled):active { transform: scale(0.97) }` rule in style.css
+   would otherwise replace the translateY(-50%) centering and make the button
+   drop down on click. Compose the two transforms instead. */
+button.toggle-password:not(:disabled):active {
+    transform: translateY(-50%) scale(0.97);
+}
+
+/* Match both the <i> placeholder and the <svg> that lucide.createIcons()
+   swaps in, so the icon size stays identical before and after toggling. */
+.toggle-password i,
+.toggle-password svg { width: 18px; height: 18px; }
+
+/* ── Submit Button ── */
+.btn-submit {
+    width: 100%;
+    min-height: 50px;
+    margin-top: 1rem;
+    background: var(--brand-gradient);
+    color: white;
+    border: none;
+    border-radius: var(--r-md, 14px);
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition: transform 0.2s var(--ease-glass, ease), box-shadow 0.25s ease, filter 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    position: relative;
+    box-shadow: 0 8px 18px -6px rgba(21, 94, 117, 0.5);
+}
+
+.btn-submit:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+    box-shadow: 0 12px 26px -8px rgba(21, 94, 117, 0.55);
+}
+
+.btn-submit:active { transform: translateY(0); filter: brightness(0.98); }
+
+.btn-submit.admin {
+    background: var(--primary-dark);
+    box-shadow: 0 8px 18px -6px rgba(21, 94, 117, 0.55);
+}
+
+.btn-submit.loading .btn-text { visibility: hidden; }
+.btn-submit.loading .loader { display: block; }
+
+.loader {
+    display: none;
+    width: 20px;
+    height: 20px;
+    border: 3px solid var(--hairline);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: authSpin 0.8s linear infinite;
+    position: absolute;
+    /* Centre independently of the container's display mode. Without these
+       offsets the spinner falls back to its static position: top-left when the
+       button is display:block, or flex-centred when display:flex — so it only
+       looked right on buttons that kept their flex centering. margin:auto (not
+       transform) keeps it clear of the rotate() in authSpin. */
+    inset: 0;
+    margin: auto;
+}
+
+@keyframes authSpin { to { transform: rotate(360deg); } }
+
+/* ── Footer Links ── */
+.auth-footer {
+    margin-top: 2rem;
+    text-align: center;
+    font-size: 0.88rem;
+    color: var(--ink-500, var(--stone-500));
+}
+
+.auth-footer a {
+    color: var(--primary-dark);
+    text-decoration: none;
+    font-weight: 700;
+    transition: color 0.15s ease;
+}
+
+.auth-footer a:hover { color: var(--primary-deep, #164e63); text-decoration: underline; }
+
+.auth-footer-end {
+    text-align: right;
+    margin: -0.5rem 0 1.25rem;
+}
+
+.auth-footer-end a { font-size: 0.85rem; }
+
+/* Registration step transitions */
+#account-info-section, #otp-section { animation: slideIn 0.3s ease-out; }
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(10px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Error Banner ── */
+.error-banner {
+    background: rgba(239, 68, 68, 0.08);
+    color: var(--red-600);
+    padding: 0.8rem 1rem;
+    border-radius: var(--r-sm, 12px);
+    border: 1px solid rgba(239, 68, 68, 0.22);
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#recaptcha-container {
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: center;
+}
+
+/* ── Email Verification Panel (register step 2) ── */
+.verify-panel {
+    text-align: center;
+    padding: 1.5rem 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.verify-icon-ring {
+    width: 64px;
+    height: 64px;
+    background: var(--brand-gradient);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    box-shadow: 0 10px 22px -6px rgba(21, 94, 117, 0.45);
+}
+
+.verify-icon-ring i { width: 30px; height: 30px; color: var(--white); }
+
+.verify-panel h3 {
+    font-size: 1.15rem;
+    margin: 0 0 0.4rem;
+}
+
+.verify-subtitle {
+    font-size: 0.85rem;
+    color: var(--ink-500, var(--stone-500));
+    margin: 0 0 1.25rem;
+}
+
+.spam-notice {
+    background: rgba(254, 249, 195, 0.85);
+    border: 1px solid rgba(250, 204, 21, 0.5);
+    border-radius: var(--r-sm, 12px);
+    padding: 0.85rem 1rem;
+    text-align: left;
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.spam-notice i {
+    width: 16px;
+    height: 16px;
+    color: #ca8a04;
+    flex-shrink: 0;
+    margin-top: 3px;
+}
+
+.spam-notice p {
+    font-size: 0.8rem;
+    color: #713f12;
+    margin: 0 !important;
+    line-height: 1.5;
+    text-align: left;
+}
+
+.verify-hint {
+    font-size: 0.76rem;
+    color: var(--ink-400, var(--stone-400));
+    margin-top: 1.1rem;
+}
+
+.verify-resend-row {
+    text-align: center;
+    margin-top: 0.25rem;
+}
+
+#resend-email-btn {
+    background: none;
+    border: none;
+    color: var(--primary-dark);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 4px;
+}
+
+#resend-email-btn:hover { color: var(--primary-deep, #164e63); }
+
+/* ── Mobile Optimizations ── */
+@media (max-width: 480px) {
+    .auth-page {
+        padding: 16px;
+        align-items: flex-start;
+        padding-top: 10vh;
+    }
+
+    .auth-card {
+        padding: 1.75rem 1.5rem;
+        border-radius: 10px;
+    }
+
+    .auth-card h1 { font-size: 1.5rem; }
+    .brand-logo { width: 52px; height: 52px; }
+    .input-group { margin-bottom: 1.15rem; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Dark Weather Glass overrides (bg-night / bg-stormy / bg-rainy)
+   ═══════════════════════════════════════════════════════════════ */
+
+[data-theme="dark"] .auth-card {
+    background: linear-gradient(155deg, rgba(41, 37, 36, 0.72), rgba(28, 25, 23, 0.66));
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .auth-card h1,
+[data-theme="dark"] .auth-card h3 { color: var(--white); }
+
+.bg-night .auth-card > p,
+.bg-stormy .auth-card > p,
+.bg-rainy .auth-card > p,
+#login-view > p,
+#forgot-view > p,
+.bg-night .auth-card .input-group label,
+.bg-stormy .auth-card .input-group label,
+.bg-rainy .auth-card .input-group label,
+.bg-night .auth-card .auth-footer,
+.bg-stormy .auth-card .auth-footer,
+.bg-rainy .auth-card .auth-footer,
+.bg-night .verify-hint,
+.bg-stormy .verify-hint,
+.bg-rainy .verify-hint,
+[data-theme="dark"] .verify-subtitle { color: rgba(255, 255, 255, 0.7); }
+
+[data-theme="dark"] .toggle-password { color: rgba(255, 255, 255, 0.5); }
+
+[data-theme="dark"] .auth-card .input-control {
+    background: rgba(28, 25, 23, 0.4);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: white;
+}
+
+[data-theme="dark"] .auth-card .input-control::placeholder { color: rgba(255, 255, 255, 0.35); }
+
+[data-theme="dark"] .auth-card .input-control:focus {
+    background: rgba(28, 25, 23, 0.6);
+    border-color: var(--sky-500);
+}
+
+[data-theme="dark"] .error-banner {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.28);
+    color: var(--red-300);
+}
+
+[data-theme="dark"] .spam-notice {
+    background: rgba(120, 53, 15, 0.5);
+    border-color: rgba(245, 158, 11, 0.35);
+}
+
+[data-theme="dark"] .spam-notice p { color: #fde68a; }
+
+[data-theme="dark"] .auth-card .btn-submit {
+    background: var(--brand-gradient);
+    box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="dark"] .auth-footer a { color: var(--sky-300); }
+
+@media (prefers-reduced-motion: reduce) {
+    .auth-wrapper { animation: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   VISIBILITY & THEME FIX LAYER (Auth)
+   The original dark overrides only targeted .auth-card > p — the
+   login/forgot subtitles and several labels slipped through.
+   ═══════════════════════════════════════════════════════════════ */
+
+[data-theme="dark"] #login-view > h1,
+[data-theme="dark"] #forgot-view > h1,
+[data-theme="dark"] .auth-card > p,
+[data-theme="dark"] #login-view > p,
+[data-theme="dark"] #forgot-view > p { color: var(--white); }
+
+[data-theme="dark"] #login-view > p,
+[data-theme="dark"] #forgot-view > p { color: rgba(255, 255, 255, 0.7); }
+
+[data-theme="dark"] .input-group label { color: rgba(255, 255, 255, 0.7); }
+
+[data-theme="dark"] .verify-panel h3 { color: var(--white); }
+
+[data-theme="dark"] .verify-subtitle { color: rgba(255, 255, 255, 0.7); }
+
+[data-theme="dark"] .verify-hint { color: rgba(255, 255, 255, 0.45); }
+
+[data-theme="dark"] .auth-footer { color: rgba(255, 255, 255, 0.7); }
+
+[data-theme="dark"] .spam-notice i { color: var(--amber-400); }
+
+/* ═══════════════════════════════════════════════════════════════
+   DESIGN POLISH LAYER (Auth) — depth, glow, motion
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Card: floating glass with a soft brand halo */
+.auth-card {
+    background: var(--glass-3);
+    box-shadow:
+        var(--shadow-lg),
+        0 0 0 1px rgba(44, 95, 151, 0.06),
+        0 0 80px -20px rgba(44, 95, 151, 0.25);
+}
+
+/* Top brand edge strip removed — clean flat card top */
+
+/* Logo: gentle float + halo ring */
+.brand-logo {
+    
+    box-shadow:
+        0 10px 22px -6px rgba(21, 94, 117, 0.5),
+        0 0 0 8px rgba(44, 95, 151, 0.08);
+}
+@keyframes brandFloat {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-5px); }
+}
+
+/* Headings — solid ink for maximum legibility */
+.auth-card h1.text-gradient,
+.auth-card h1 {
+    color: var(--stone-800);
+}
+[data-theme="dark"] .auth-card h1 {
+    color: var(--stone-100);
+}
+
+/* Submit button: solid fill + gentle lift */
+.btn-submit {
+    transition: transform 0.2s var(--ease-glass), box-shadow 0.25s ease, filter 0.2s ease;
+}
+.btn-submit:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.08);
+    box-shadow:
+        0 14px 32px -8px rgba(44, 95, 151, 0.55),
+        0 0 24px -4px rgba(13, 148, 136, 0.35);
+}
+
+/* Inputs: lift on focus (shared base already lifts; deepen ring here) */
+.input-control:focus { box-shadow: 0 0 0 4px rgba(44, 95, 151, 0.16), 0 8px 18px -8px rgba(44, 95, 151, 0.3); }
+
+/* Footer link underline slide */
+.auth-footer a {
+    position: relative;
+}
+.auth-footer a::after {
+    content: '';
+    position: absolute;
+    left: 0; bottom: -2px;
+    width: 100%; height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.25s var(--ease-glass);
+}
+.auth-footer a:hover::after { transform: scaleX(1); }
+.auth-footer a { text-decoration: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+    .brand-logo { animation: none !important; }
+}
+
+/* Dark weather: card keeps its halo */
+[data-theme="dark"] .auth-card {
+    background: linear-gradient(155deg, rgba(41, 37, 36, 0.78), rgba(28, 25, 23, 0.72));
+    box-shadow:
+        0 24px 64px rgba(0, 0, 0, 0.45),
+        0 0 90px -24px rgba(8, 145, 178, 0.3);
+}
+[data-theme="dark"] .auth-card::before { display: none; }
+[data-theme="dark"] .brand-logo {
+    box-shadow:
+        0 10px 22px -6px rgba(21, 94, 117, 0.6),
+        0 0 0 8px rgba(8, 145, 178, 0.12);
+}
+/* ═══════════════════════════════════════════════════════════════
+   WARM & CALM CIVIC — Auth pages redesign layer
+   Friendly welcome cards on soft warm paper.
+   ═══════════════════════════════════════════════════════════════ */
+
+.auth-card {
+    background: var(--glass-3);
+    border: 1px solid var(--hairline);
+    border-radius: 24px;
+    box-shadow:
+        var(--shadow-xl),
+        0 0 0 1px rgba(44, 95, 151, 0.05),
+        0 0 70px -22px rgba(44, 95, 151, 0.28);
+    padding: 2.75rem 2.5rem;
+}
+.auth-card h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--ink-900);
+}
+.auth-card > p,
+#login-view > p,
+#forgot-view > p { color: var(--ink-500); font-size: 0.95rem; line-height: 1.55; }
+.auth-card h3 { font-family: var(--font-display); color: var(--ink-900); }
+.brand-logo {
+    background: var(--primary);
+    border-radius: 18px;
+    box-shadow:
+        0 10px 22px -6px rgba(39, 83, 133, 0.5),
+        0 0 0 8px rgba(44, 95, 151, 0.08);
+}
+.input-group label {
+    color: var(--ink-500);
+    font-weight: 800;
+    letter-spacing: 0.04em;
+}
+.input-control {
+    background: var(--glass-1);
+    border: 1.5px solid var(--border);
+    border-radius: 13px;
+    color: var(--ink-900);
+    font-weight: 600;
+}
+.input-control:focus {
+    border-color: var(--primary);
+    background: var(--surface);
+    box-shadow: 0 0 0 4px rgba(44, 95, 151, 0.14);
+    transform: none;
+}
+.btn-submit {
+    background: var(--primary);
+    border-radius: 13px;
+    box-shadow: var(--shadow-glow);
+    font-weight: 800;
+}
+.btn-submit:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.06);
+    box-shadow:
+        0 14px 30px -8px rgba(39, 83, 133, 0.5),
+        0 0 22px -4px rgba(44, 95, 151, 0.3);
+}
+.error-banner {
+    background: var(--danger-soft);
+    border: 1px solid rgba(207, 78, 62, 0.3);
+    color: #a13a2e;
+    border-radius: 12px;
+    font-weight: 600;
+}
+.verify-panel {
+    background: var(--glass-1);
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+}
+.verify-icon-ring {
+    background: var(--c-brand-soft, rgba(44, 95, 151, 0.1));
+    color: var(--primary);
+}
+.spam-notice {
+    background: var(--amber-soft, var(--amber-soft));
+    border-radius: 12px;
+    color: #8a5310;
+}
+.verify-hint { color: var(--ink-500); }
+
+[data-theme="dark"] .auth-card {
+    background: var(--glass-dark-2);
+    border-color: var(--glass-dark-border);
+    box-shadow:
+        0 24px 64px rgba(0, 0, 0, 0.45),
+        0 0 90px -24px rgba(44, 95, 151, 0.3);
+}
+[data-theme="dark"] .auth-card h1 { color: var(--cream); }
+[data-theme="dark"] .auth-card > p,
+[data-theme="dark"] #login-view > p,
+[data-theme="dark"] #forgot-view > p,
+[data-theme="dark"] .auth-footer { color: rgba(255, 250, 240, 0.7); }
+[data-theme="dark"] .input-group label { color: rgba(255, 250, 240, 0.7); }
+[data-theme="dark"] .input-control {
+    background: rgba(255, 253, 248, 0.06);
+    border-color: rgba(255, 241, 220, 0.14);
+    color: var(--cream);
+}
+[data-theme="dark"] .input-control:focus {
+    background: rgba(255, 253, 248, 0.09);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(44, 95, 151, 0.3);
+}
+[data-theme="dark"] .verify-panel { background: rgba(255, 253, 248, 0.05); border-color: var(--glass-dark-border); }
+[data-theme="dark"] .verify-panel h3 { color: var(--cream); }
+[data-theme="dark"] .verify-subtitle,
+[data-theme="dark"] .verify-hint { color: rgba(255, 250, 240, 0.7); }
+[data-theme="dark"] .spam-notice { background: rgba(217, 130, 24, 0.14); color: var(--sand); }
+[data-theme="dark"] .toggle-password { color: rgba(255, 250, 240, 0.6); }
+
+/* ── Terms of Service Consent (gates the Create Account button) ──
+   Borderless: just the checkbox + label, sitting directly above the
+   Create Account button. */
+.terms-consent { margin-top: 0.5rem; }
+
+/* Not flex: flex would ignore the whitespace between the label and the
+   Terms of Service button (and flex:1 was stretching the label, pinning the
+   link to the far right). As inline-level boxes they flow as one sentence,
+   joined by the natural whitespace already in the HTML.
+
+   font-size/line-height match the children (0.86rem/1.5) so the line box's
+   "strut" isn't taller than them — otherwise the row reserves 25.6px for
+   20.64px content and vertical-align:top lifts the link ~3px off the label. */
+.terms-consent-row {
+    display: block;
+    font-size: 0.86rem;
+    line-height: 1.5;
+}
+
+/* Checkbox: native input is visually hidden but kept focusable so keyboard
+   users can still reach and toggle it. The box itself is drawn by the
+   label's ::before, styled to match .input-control (1.5px --border rule,
+   --glass-1 fill) so it sits in the same visual language as the fields. */
+.terms-checkbox {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.terms-consent-label {
+    /* Accent tokens — resolved per theme so the checkbox always matches the
+       surface it sits on (light: cream card, dark: charcoal card). */
+    --cb-border: var(--ink-500);
+    --cb-accent: var(--primary);
+    position: relative;
+    display: inline-block;
+    /* Match the link's vertical-align so both ride the same line-box edge.
+       baseline on one and top on the other is what pushed the link up. */
+    vertical-align: top;
+    font-size: 0.86rem;
+    line-height: 1.5;
+    color: var(--ink-700);
+    cursor: pointer;
+    padding-left: 28px;
+}
+
+/* Box: transparent fill — no light rectangle sitting on the card. Only the
+   border marks it, which keeps it neutral across every weather background. */
+.terms-consent-label::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 1px;
+    box-sizing: border-box;
+    width: 20px;
+    height: 20px;
+    border: 1.5px solid var(--cb-border);
+    border-radius: 6px;
+    background: transparent;
+    transition: background-color 0.18s ease, border-color 0.18s ease;
+}
+
+/* Checkmark: same 20x20 geometry as the box, so background-position:center
+   lands it dead centre. Path shifted +0.5 in y — with round caps its stroke
+   bbox then centres exactly on the viewBox centre (12,12) instead of
+   sitting 0.5 low. Primary-coloured to match the theme accent. */
+.terms-consent-label::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 1px;
+    box-sizing: border-box;
+    width: 20px;
+    height: 20px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232c5f97' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6.5L9 17.5l-5-5'/%3E%3C/svg%3E") no-repeat center / 14px 14px;
+    opacity: 0;
+    transform: scale(0.6);
+    transition: opacity 0.15s ease, transform 0.18s var(--ease-glass, ease);
+}
+
+/* Ticked: primary border + primary check, still no fill. */
+.terms-checkbox:checked + .terms-consent-label::before {
+    background: transparent;
+    border-color: var(--cb-accent);
+}
+
+.terms-checkbox:checked + .terms-consent-label::after { opacity: 1; transform: scale(1); }
+
+/* Focus ring on the drawn box (the native input itself is visually hidden). */
+.terms-checkbox:focus-visible + .terms-consent-label::before {
+    border-color: var(--cb-accent);
+    box-shadow: 0 0 0 4px rgba(44, 95, 151, 0.18);
+}
+
+.terms-consent-link {
+    display: inline-block;
+    vertical-align: top;
+    padding: 0;
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: 0.86rem;
+    font-weight: 800;
+    line-height: 1.5;
+    color: var(--primary-dark);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s ease;
+}
+
+.terms-consent-link:hover { color: var(--primary-deep); }
+
+/* Locked submit button — clearly inert until consent is ticked */
+.btn-submit:disabled,
+.btn-submit[aria-disabled="true"] {
+    cursor: not-allowed;
+    filter: grayscale(0.55);
+    opacity: 0.55;
+    box-shadow: none;
+}
+
+.btn-submit:disabled:hover,
+.btn-submit[aria-disabled="true"]:hover {
+    transform: none;
+    filter: grayscale(0.55) brightness(1);
+    box-shadow: none;
+}
+
+/* ── Terms of Service Modal ── */
+.terms-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(28, 25, 23, 0.55);
+    animation: termsFadeIn 0.18s ease;
+}
+
+.terms-modal-overlay[hidden] { display: none !important; }
+
+.terms-modal {
+    width: min(680px, 100%);
+    max-height: 86vh;
+    /* Dynamic viewport unit: on mobile browsers `vh` includes the area behind
+       the collapsing URL bar, which can push the footer button off-screen.
+       Falls back to the vh value above on browsers without dvh support. */
+    max-height: 86dvh;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface, #fffdf8);
+    border: 1px solid var(--hairline);
+    border-radius: 18px;
+    box-shadow: 0 24px 60px rgba(28, 25, 23, 0.32);
+    overflow: hidden;
+    animation: termsSlideUp 0.24s var(--ease-glass, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+@keyframes termsFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes termsSlideUp {
+    from { opacity: 0; transform: translateY(12px) scale(0.985); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.terms-modal-head {
+    flex: none;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 1.1rem 1.35rem;
+    border-bottom: 1px solid var(--hairline);
+    background: var(--glass-1);
+}
+
+.terms-modal-heading { min-width: 0; }
+
+.terms-modal-head h2 {
+    font-family: var(--font-display, inherit);
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--ink-900);
+    margin: 0;
+}
+
+.terms-modal-date {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-500);
+}
+
+.terms-modal-close {
+    flex: none;
+    position: relative; /* anchors the enlarged ::after tap target below */
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid var(--hairline);
+    background: transparent;
+    color: var(--ink-500);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.terms-modal-close i, .terms-modal-close svg { width: 17px; height: 17px; }
+
+/* 44px touch minimum without altering the 32px visual size. */
+.terms-modal-close::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+}
+
+.terms-modal-close:hover {
+    color: var(--ink-900);
+    background: var(--danger-soft, #fbeae7);
+}
+
+.terms-modal-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    /* Stop scroll momentum from chaining to the page behind once the terms are
+       read to the end (and vice-versa when scrolling back up). */
+    overscroll-behavior: contain;
+    padding: 1.35rem 1.5rem 1.5rem;
+    color: var(--ink-700);
+    font-size: 0.9rem;
+    line-height: 1.65;
+}
+
+.terms-modal-body h3 {
+    font-family: var(--font-display, inherit);
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin: 1.4rem 0 0.45rem;
+    letter-spacing: -0.01em;
+}
+
+.terms-modal-body h3:first-of-type { margin-top: 1.1rem; }
+.terms-modal-body p { margin: 0 0 0.7rem; }
+.terms-modal-body ul { margin: 0 0 0.7rem; padding-left: 1.2rem; }
+.terms-modal-body li { margin-bottom: 0.32rem; }
+
+.terms-modal-body a {
+    color: var(--primary-dark);
+    font-weight: 700;
+    word-break: break-word;
+}
+
+/* Rainfall classification table */
+.terms-table {
+    width: 100%;
+    margin: 0 0 0.9rem;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.terms-table th,
+.terms-table td {
+    padding: 0.55rem 0.75rem;
+    text-align: left;
+    border: 1px solid var(--hairline);
+}
+
+.terms-table th {
+    background: var(--primary-light);
+    color: var(--primary-deep);
+    font-weight: 800;
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.terms-table td { background: var(--glass-1); color: var(--ink-700); font-weight: 600; }
+
+.terms-contact {
+    padding: 0.85rem 1rem;
+    margin-bottom: 0.9rem;
+    background: var(--glass-1);
+    border: 1px solid var(--hairline);
+    border-left: 3px solid var(--primary);
+    border-radius: 0 var(--r-sm, 12px) var(--r-sm, 12px) 0;
+}
+
+.terms-contact p { margin: 0 !important; }
+
+/* Now inside the scrollable body rather than pinned to the dialog, so it's a
+   normal block with top margin instead of a fixed bar. */
+.terms-modal-foot {
+    margin-top: 1.5rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--hairline);
+    display: flex;
+    justify-content: center;
+}
+
+/* ── Modal scrollbars: hidden, still scrollable ──
+   The bodies keep `overflow-y: auto`, so wheel / touch / keyboard scrolling
+   all still work — only the visible bar is suppressed. WebKit hides the
+   native bar by removing the track, Firefox ignores that pseudo-element and
+   needs scrollbar-width:none instead. */
+.terms-modal-body,
+.guide-modal-body {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.terms-modal-body::-webkit-scrollbar,
+.guide-modal-body::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+}
+
+.terms-modal-accept {
+    flex: none;
+    width: 100%;
+    padding: 13px 22px;
+    background: var(--primary);
+    color: var(--white);
+    border: none;
+    border-radius: var(--r-sm, 12px);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition: filter 0.2s ease, transform 0.2s var(--ease-glass, ease);
+}
+
+.terms-modal-accept:hover { filter: brightness(1.06); transform: translateY(-1px); }
+.terms-modal-accept:active { transform: translateY(0); filter: brightness(0.98); }
+
+/* Dark weather variants */
+[data-theme="dark"] .terms-modal {
+    background: rgba(28, 25, 23, 0.94);
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+[data-theme="dark"] .terms-modal-overlay { background: rgba(0, 0, 0, 0.65); }
+[data-theme="dark"] .terms-modal-head { background: rgba(255, 253, 248, 0.04); }
+[data-theme="dark"] .terms-modal-head h2 { color: var(--white); }
+[data-theme="dark"] .terms-modal-date { color: rgba(255, 255, 255, 0.7); }
+[data-theme="dark"] .terms-modal-body { color: rgba(255, 255, 255, 0.78); }
+[data-theme="dark"] .terms-modal-body h3,
+[data-theme="dark"] .terms-modal-body a { color: var(--sky-300); }
+[data-theme="dark"] .terms-modal-close { color: rgba(255, 255, 255, 0.7); }
+[data-theme="dark"] .terms-modal-close:hover { color: var(--white); background: rgba(239, 68, 68, 0.18); }
+[data-theme="dark"] .terms-table th,
+[data-theme="dark"] .terms-table td { border-color: rgba(255, 255, 255, 0.14); }
+[data-theme="dark"] .terms-table th { background: rgba(44, 95, 151, 0.24); color: var(--sky-300); }
+[data-theme="dark"] .terms-table td { background: rgba(255, 253, 248, 0.04); color: rgba(255, 255, 255, 0.78); }
+[data-theme="dark"] .terms-contact { background: rgba(255, 253, 248, 0.04); border-color: rgba(255, 255, 255, 0.12); }
+
+@media (max-width: 480px) {
+    .terms-modal { max-height: 88vh; max-height: 88dvh; border-radius: 14px; }
+    .terms-modal-body { padding: 1.1rem 1.1rem 1.25rem; font-size: 0.86rem; }
+    .terms-modal-head { padding: 0.9rem 1.1rem; }
+}
+
+/* Very narrow phones (≤360px): the footer stack and the rainfall table get
+   tight enough that the "I Understand" button needs its own full-width row. */
+@media (max-width: 360px) {
+    .terms-modal-overlay,
+    .guide-modal-overlay { padding: 0.5rem; }
+
+    .terms-modal-head h2 { font-size: 1.02rem; }
+
+    /* Let the two classification columns stay readable instead of squeezing. */
+    .terms-table { font-size: 0.78rem; }
+    .terms-table th,
+    .terms-table td { padding: 0.45rem 0.5rem; }
+
+    /* Consent row wraps onto two lines on very narrow phones: label above,
+       link below and aligned with the label text (past the 20px checkbox). */
+    .terms-consent-link {
+        display: block;
+        margin-left: 28px;
+        margin-top: 2px;
+    }
+}
+
+/* Short-viewport (landscape phone) handling lives in the final override
+   block at the end of this file, so it isn't undone by the portrait rules. */
+
+@media (prefers-reduced-motion: reduce) {
+    .terms-modal-overlay, .terms-modal { animation: none; }
+    .terms-modal-accept, .terms-consent-label::before, .terms-consent-label::after { transition: none; }
+}
+
+/* ── Registration Guide Trigger ──
+   Mirrors the admin config-section info buttons (Alert Command Center /
+   System Behavior / Hardware & Transmission): small rounded square, muted
+   fill, 16px lucide "info" glyph, darker on hover. */
+.auth-topbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: -0.75rem;
+}
+
+.auth-info-btn {
+    position: relative; /* anchors the enlarged ::after tap target below */
+    padding: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 10px;
+    background: rgba(70, 60, 48, 0.06);
+    color: var(--ink-500);
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.auth-info-btn svg { width: 16px; height: 16px; }
+
+.auth-info-btn:hover { background: rgba(28, 25, 23, 0.1); color: var(--ink-700); }
+
+/* Enlarge the tap target to the 44px touch minimum without changing the visual
+   size — the negative inset cancels the extra padding back out, so the pill
+   keeps its exact admin-panel dimensions. */
+.auth-info-btn::after {
+    content: '';
+    position: absolute;
+    inset: -11px;
+}
+
+[data-theme="dark"] .auth-info-btn { background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.7); }
+[data-theme="dark"] .auth-info-btn:hover { background: rgba(255, 255, 255, 0.16); color: rgba(255, 255, 255, 0.92); }
+
+/* ── Registration Guide Modal ──
+   Same scrollable guide-modal pattern used in the admin panel. */
+.guide-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(28, 25, 23, 0.55);
+    animation: termsFadeIn 0.18s ease;
+}
+
+.guide-modal-overlay[hidden] { display: none !important; }
+
+.guide-modal {
+    width: min(680px, 100%);
+    max-height: 82vh;
+    /* Dynamic viewport unit — see the note on .terms-modal. */
+    max-height: 82dvh;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface, #fffdf8);
+    border: 1px solid var(--hairline);
+    border-radius: 18px;
+    box-shadow: 0 24px 60px rgba(28, 25, 23, 0.32);
+    overflow: hidden;
+    animation: termsSlideUp 0.24s var(--ease-glass, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.guide-modal-head {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--hairline);
+    background: var(--glass-1);
+}
+
+.guide-modal-head h3 {
+    font-family: var(--font-display, inherit);
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    color: var(--ink-900);
+    margin: 0;
+}
+
+.guide-modal-close {
+    flex: none;
+    position: relative; /* anchors the enlarged ::after tap target below */
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid var(--hairline);
+    background: transparent;
+    color: var(--ink-500);
+    cursor: pointer;
+    line-height: 1;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.guide-modal-close svg { width: 16px; height: 16px; }
+
+/* 44px touch minimum without altering the 32px visual size. */
+.guide-modal-close::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+}
+
+.guide-modal-close:hover {
+    color: var(--ink-900);
+    background: var(--danger-soft, #fbeae7);
+}
+
+.guide-modal-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain; /* see .terms-modal-body */
+    padding: 1.1rem 1.25rem 1.25rem;
+    color: var(--ink-700);
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.guide-modal-body h4 {
+    margin: 0 0 0.35rem;
+    font-family: var(--font-display, inherit);
+    font-size: 0.93rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+}
+
+.guide-modal-body h4:not(:first-child) { margin-top: 1.05rem; }
+.guide-modal-body p { margin: 0 0 0.25rem; }
+
+/* Dark weather variants */
+[data-theme="dark"] .terms-consent-label {
+    --cb-border: rgba(255, 255, 255, 0.45);
+    /* --primary (#2c5f97) is too dark to read on the charcoal card, so the
+       accent lifts to sky-400 — the dark-theme equivalent of the primary blue. */
+    --cb-accent: var(--sky-400);
+    color: rgba(255, 255, 255, 0.78);
+}
+/* Stroke colour lives inside the SVG data URI, so it can't follow the token
+   above — override the whole image with the lightened accent. */
+[data-theme="dark"] .terms-consent-label::after {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2360a5fa' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6.5L9 17.5l-5-5'/%3E%3C/svg%3E");
+}
+[data-theme="dark"] .terms-checkbox:focus-visible + .terms-consent-label::before {
+    box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.28);
+}
+[data-theme="dark"] .terms-consent-link { color: var(--sky-300); }
+
+[data-theme="dark"] .guide-modal {
+    background: rgba(28, 25, 23, 0.94);
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+[data-theme="dark"] .guide-modal-overlay { background: rgba(0, 0, 0, 0.65); }
+[data-theme="dark"] .guide-modal-head { background: rgba(255, 253, 248, 0.04); }
+[data-theme="dark"] .guide-modal-head h3 { color: var(--white); }
+[data-theme="dark"] .guide-modal-body { color: rgba(255, 255, 255, 0.78); }
+[data-theme="dark"] .guide-modal-body h4 { color: var(--sky-300); }
+[data-theme="dark"] .guide-modal-close { color: rgba(255, 255, 255, 0.7); }
+[data-theme="dark"] .guide-modal-close:hover { color: var(--white); background: rgba(239, 68, 68, 0.18); }
+
+@media (max-width: 480px) {
+    .guide-modal { max-height: 88vh; max-height: 88dvh; border-radius: 14px; }
+    .guide-modal-body { padding: 0.9rem 1rem 1rem; font-size: 0.86rem; }
+    .guide-modal-head { padding: 0.85rem 1rem; }
+    .guide-modal-head h3 { font-size: 0.88rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .guide-modal-overlay, .guide-modal { animation: none; }
+    .auth-info-btn { transition: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SHORT-VIEWPORT (landscape phone) OVERRIDES — kept last so they
+   win over the max-width portrait rules above, which would otherwise
+   re-shrink the modal on a phone held sideways.
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-height: 520px) and (orientation: landscape) {
+    .terms-modal,
+    .guide-modal { max-height: 94vh; max-height: 94dvh; border-radius: 14px; }
+    .terms-modal-head,
+    .guide-modal-head { padding-top: 0.7rem; padding-bottom: 0.7rem; }
+    .terms-modal-body,
+    .guide-modal-body { font-size: 0.86rem; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NO-GLASS MODE — final layer
+   Every surface is solid: no backdrop blur, no see-through panels.
+   ═══════════════════════════════════════════════════════════════ */
+*, *::before, *::after {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}

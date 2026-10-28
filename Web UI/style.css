@@ -1,0 +1,520 @@
+/* ═══════════════════════════════════════════════════════════════
+   BRIANE — Refined Glass Design System (Foundation)
+   Single source of truth for tokens + shared components.
+   Loaded first on every page; page styles build on these tokens.
+   ═══════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+
+:root {
+    /* ── Brand ──
+       Warm & Calm Civic palette: a deep "river teal" anchor with warm,
+       humane neutrals. Flat, approachable fills — no glassy gradients.
+       --brand-gradient is an alias that resolves flat, for compatibility. */
+    --primary: #2c5f97;
+    --primary-dark: #275385;
+    --primary-deep: #21466e;
+    --primary-light: #e7edf5;
+    --accent: var(--primary);
+    --brand-gradient: #2c5f97;
+
+    /* ── Warm accent (warnings / call-to-action pops) ── */
+    --amber: #d98218;
+    --amber-soft: #fdefd6;
+
+    /* ── Typography: warm serif display + friendly humanist sans ── */
+    --font-display: 'Sora', 'DM Sans', system-ui, -apple-system, sans-serif;
+    --font-body: 'DM Sans', system-ui, -apple-system, sans-serif;
+
+    /* ── Semantic ── */
+    --success: #3e9b6e;
+    --success-deep: #2f7b56;
+    --danger: #cf4e3e;
+    --danger-soft: #fbeae7;
+    --warning: #d98218;
+    --teal: #2c5f97;
+
+    /* ── Ink (text): warm charcoal ── */
+    --ink-900: #33302b;
+    --ink-700: #55504a;
+    --ink-500: #7a746c;
+    --ink-400: #aaa299;
+
+    /* ── Legacy text aliases (kept for page styles) ── */
+    --text-main: var(--ink-900);
+    --text-muted: var(--ink-500);
+
+    /* ── Surfaces ──
+       Warm paper cards with hairline borders and soft depth. */
+    --glass-1: #fffdf8;                     /* chips, small items   */
+    --glass-2: #fffdf8;                     /* panels, cards        */
+    --glass-3: #fffdf8;                     /* hero banners         */
+    --glass-blur-1: none;
+    --glass-blur-2: none;
+    --glass-blur-3: none;
+    --hairline: #e8e0d0;
+    --hairline-strong: rgba(70, 60, 48, 0.14);
+
+    /* ── Dark-context surfaces (bg-night / stormy / rainy) ──
+       Solid warm charcoal — no glass, no see-through. */
+    --glass-dark-1: #2c2620;
+    --glass-dark-2: #201c18;
+    --glass-dark-border: rgba(255, 241, 220, 0.12);
+
+    /* ── Legacy aliases ── */
+    --background: #f6f2e9;
+    --surface: #fffdf8;
+    --border: #e8e0d0;
+    --border-color: #e8e0d0;
+    --bg-light: #faf6ee;
+    --sidebar-dark: #2b2823;
+    --glass-white: #fffdf8;
+
+    /* ── Radii: friendly, rounded ── */
+    --r-sm: 10px;
+    --r-md: 14px;
+    --r-lg: 18px;
+    --r-xl: 22px;
+    --radius-md: var(--r-sm);
+    --radius-lg: var(--r-lg);
+
+    /* ── Elevation: soft, warm shadows ── */
+    --shadow-xs: 0 1px 2px rgba(70, 60, 45, 0.06);
+    --shadow-sm: 0 1px 2px rgba(70, 60, 45, 0.07);
+    --shadow-md: 0 2px 8px rgba(70, 60, 45, 0.08);
+    --shadow-lg: 0 6px 18px rgba(70, 60, 45, 0.10);
+    --shadow-xl: 0 14px 34px rgba(70, 60, 45, 0.14);
+    --shadow-glow: 0 2px 8px rgba(44, 95, 151, 0.22);
+
+    /* ── Motion ── */
+    --ease-glass: cubic-bezier(0.22, 1, 0.36, 1);
+    --ring: 0 0 0 4px rgba(44, 95, 151, 0.16);
+
+    /* ── Universal palette (single place to tweak recurring colors) ──
+       These tokens are consumed by style.css, dashboard.css, admin.css and
+       auth.css. Change the hex here and every page updates. */
+    --white: #ffffff;
+    --stone-900: #1c1917;
+    --stone-800: #292524;
+    --stone-700: #44403c;
+    --stone-600: #57534e;
+    --stone-500: #6b6560;
+    --stone-500-2: #78716c;
+    --stone-400: #a8a29e;
+    --stone-400-2: #b9b0a4;
+    --stone-300: #d6d3d1;
+    --stone-300-2: #d8d2c9;
+    --stone-200: #e7e5e4;
+    --stone-100: #f5f5f4;
+    --stone-50: #fafaf9;
+    --cream: #f2ede4;
+    --cyan-900: #155e75;
+    --cyan-500: #06b6d4;
+    --cyan-300: #67e8f9;
+    --sky-500: #3b82f6;
+    --sky-400: #60a5fa;
+    --sky-300: #93c5fd;
+    --slate-500: #64748b;
+    --slate-800: #1e293b;
+    --teal-600: #0d9488;
+    --water: #2f8f6d;
+    --ice: #86c9d6;
+    --mint: #7fd8ae;
+    --emerald-500: #10b981;
+    --emerald-400: #34d399;
+    --red-500: #ef4444;
+    --red-600: #dc2626;
+    --red-700: #b91c1c;
+    --red-400: #f87171;
+    --red-300: #fca5a5;
+    --red-100: #fecaca;
+    --amber-800: #9a5a0a;
+    --amber-700: #b45309;
+    --amber-600: #d97706;
+    --amber-500: #f59e0b;
+    --amber-400: #fbbf24;
+    --amber-200: #fed7aa;
+    --sand: #f0b05e;
+    --orange-600: #ea580c;
+    --orange-500: #f97316;
+    --orange-400: #fb923c;
+}
+
+/* ── Base ─────────────────────────────────────────────────────── */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: var(--font-body);
+    background-color: var(--background);
+    color: var(--text-main);
+    line-height: 1.6;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+/* Display face carries headings, brand marks and splash titles */
+h1, h2, h3, h4,
+.splash-title, .app-name, .mobile-brand {
+    font-family: var(--font-display);
+    letter-spacing: -0.015em;
+}
+
+/* Solid text accent (was gradient-clipped — removed for legibility) */
+.text-gradient {
+    color: var(--primary-dark);
+}
+
+/* Numeric data reads better aligned */
+.hero-value, .stat-value, .chip-value, .metric-info .value {
+    font-variant-numeric: tabular-nums;
+}
+
+::selection { background: rgba(44, 95, 151, 0.16); }
+
+/* ── Splash Screen (shared across all pages) ─────────────────── */
+
+.splash-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background:
+        radial-gradient(ellipse 80% 50% at 50% 110%, rgba(44, 95, 151, 0.08) 0%, transparent 70%),
+        #f6f2e9;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+    padding: 0 24px;
+}
+
+.splash-logo-box {
+    width: 84px;
+    height: 84px;
+    margin-bottom: 22px;
+    background: var(--brand-gradient);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+        0 16px 32px -8px rgba(39, 83, 133, 0.4),
+        0 0 0 10px rgba(44, 95, 151, 0.08);
+    
+}
+
+@keyframes splashLogoFloat {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-6px); }
+}
+
+.splash-logo-box img {
+    width: 52px;
+    height: 52px;
+    object-fit: contain;
+}
+
+.splash-title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--ink-900);
+    letter-spacing: -0.02em;
+    margin: 0;
+    text-align: center;
+}
+
+/* Brand wordmark on splash — solid color, no gradient clipping */
+.splash-title.text-gradient {
+    color: var(--primary-dark);
+}
+
+[data-theme="dark"] .splash-title,
+.bg-night .splash-title,
+.bg-stormy .splash-title,
+.bg-rainy .splash-title {
+    color: #e7e5e4;
+}
+
+.splash-tagline {
+    color: var(--ink-500);
+    font-size: 0.78rem;
+    line-height: 1.55;
+    margin-top: 8px;
+    max-width: 420px;
+    text-align: center;
+}
+
+.splash-loader {
+    width: 150px;
+    height: 4px;
+    background: #e8e0d0;
+    border-radius: 10px;
+    margin-top: 26px;
+    overflow: hidden;
+    position: relative;
+}
+
+/* The splash bar is driven by real loading milestones via window.SplashBar:
+   width grows monotonically (0% → 25% → 75% → 100%) and the
+   bar fills completely exactly when the page is ready to be revealed.
+   On top of the real width, a “shine” sweeps left→right and the fill pulses
+   softly, so the loader reads as alive even while waiting on Firestore. */
+.splash-loader-inner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--brand-gradient);
+    border-radius: 10px;
+    transition: width 0.45s ease;
+    animation: splashPulse 1.2s ease-in-out infinite;
+}
+
+/* Moving highlight — a translucent streak that runs across the fill. */
+.splash-loader-inner::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -70px;
+    width: 70px;
+    height: 100%;
+    border-radius: 10px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+    animation: splashShine 1.4s ease-in-out infinite;
+}
+
+@keyframes splashShine {
+    0%   { left: -70px; }
+    100% { left: calc(100% + 70px); }
+}
+
+@keyframes splashPulse {
+    0%, 100% {
+        box-shadow: 0 0 4px rgba(44, 95, 151, 0.35);
+    }
+    50% {
+        box-shadow: 0 0 14px rgba(44, 95, 151, 0.75);
+    }
+}
+
+@keyframes splashSlide {
+    0%   { left: -40%; }
+    50%  { left: 100%; }
+    100% { left: -40%; }
+}
+
+/* Dark weather / theme variant — the background manager toggles these
+   classes on <body> BEFORE the splash is dismissed, so the splash must
+   switch its surface along with its text or the title turns invisible
+   white-on-white. */
+[data-theme="dark"] .splash-screen,
+.bg-night .splash-screen,
+.bg-stormy .splash-screen,
+.bg-rainy .splash-screen {
+    background:
+        radial-gradient(ellipse 80% 50% at 50% 110%, rgba(44, 95, 151, 0.18) 0%, transparent 70%),
+        #221d18;
+}
+
+[data-theme="dark"] .splash-tagline,
+.bg-night .splash-tagline,
+.bg-stormy .splash-tagline,
+.bg-rainy .splash-tagline {
+    color: #a8a29e;
+}
+
+[data-theme="dark"] .splash-loader,
+.bg-night .splash-loader,
+.bg-stormy .splash-loader,
+.bg-rainy .splash-loader,
+[data-theme="dark"] .loader-line,
+.bg-night .loader-line,
+.bg-stormy .loader-line,
+.bg-rainy .loader-line {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="dark"] .splash-logo-box,
+.bg-night .splash-logo-box,
+.bg-stormy .splash-logo-box,
+.bg-rainy .splash-logo-box {
+    box-shadow:
+        0 16px 32px -8px rgba(39, 83, 133, 0.55),
+        0 0 0 10px rgba(44, 95, 151, 0.14);
+}
+
+/* Legacy loader hook (some pages animate .loader-inner directly) */
+.loader-line {
+    width: 150px;
+    height: 4px;
+    background: #e8e0d0;
+    border-radius: 10px;
+    margin-top: 26px;
+    overflow: hidden;
+    position: relative;
+}
+.loader-inner {
+    position: absolute;
+    width: 40%;
+    height: 100%;
+    background: var(--primary);
+    border-radius: 10px;
+    animation: splashSlide 1.5s infinite ease-in-out !important;
+}
+
+/* ── Shared Form Controls ─────────────────────────────────────── */
+
+.input-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: rgba(253, 249, 240, 0.9);
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-md);
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-main);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.input-control:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: #ffffff;
+    box-shadow: var(--ring);
+    transform: translateY(-1px);
+}
+
+.input-control::placeholder { color: var(--ink-400); font-weight: 500; }
+
+/* ── Terminal-style Logs (fixed block) ────────────────────────── */
+
+.log-terminal {
+    background: #1c1917;
+    border: 1px solid #292524;
+    border-radius: var(--r-md);
+    padding: 1.25rem;
+    max-height: 320px;
+    overflow-y: auto;
+    font-family: 'SF Mono', 'Cascadia Mono', monospace;
+}
+
+.log-entry {
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #292524;
+}
+
+.log-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.log-type { font-weight: 700; text-transform: uppercase; font-size: 0.7rem; }
+.log-time { color: #78716c; font-size: 0.7rem; }
+.log-msg { color: #e7e5e4; font-size: 0.85rem; line-height: 1.4; }
+
+/* ── Accessibility ────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ── Keyboard Focus Visibility ─────────────────────────────────── */
+:focus { outline: none; }
+:focus-visible {
+    outline: 2px solid rgba(44, 95, 151, 0.65);
+    outline-offset: 2px;
+    border-radius: 8px;
+}
+.bg-night :focus-visible,
+.bg-stormy :focus-visible,
+.bg-rainy :focus-visible,
+[data-theme="dark"] :focus-visible {
+    outline-color: rgba(103, 232, 249, 0.8);
+}
+
+/* ── Redisign Layer: grain, motion, press, type polish ───────── */
+
+/* Subtle film grain so glass surfaces aren't sterile flat.
+   Injected by background-manager.js as .grain-overlay — must sit
+   ABOVE the weather background but BELOW all page content
+   (negative z-index + later DOM position = correct layering). */
+.grain-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Smooth anchor scrolling (reduced-motion respected below) */
+html { scroll-behavior: smooth; }
+
+/* Unified numeric datum emphasis */
+.stat-value, .hero-value, .chip-value, .metric-info .value, .gauge-score, .activity-time {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+}
+
+h1, h2 { text-wrap: balance; }
+p, li, .setting-desc { text-wrap: pretty; }
+
+/* Press feedback for every interactive control (crisp, physical) */
+a, button, .btn-submit, .btn-glow, .btn-action, .settings-btn, .push-btn,
+.range-pill, .text-btn, .nav-item, .bottom-nav-item, .nav-btn {
+    transition: transform 0.18s var(--ease-glass), box-shadow 0.25s ease, background 0.2s, color 0.2s, filter 0.2s;
+}
+
+button:not(:disabled):active,
+a:active,
+.range-pill:active,
+.bottom-nav-item:active,
+.nav-btn:active {
+    transform: scale(0.97);
+}
+
+/* --- z-index scale --- */
+:root {
+    --z-splash: 1000;
+    --z-top: 200;
+    --z-sticky: 100;
+    --z-base: 0;
+    --z-background: -1;
+}
+
+/* --- Focus-visible veil --- */
+:focus-visible {
+    outline: 2px solid rgba(44, 95, 151, 0.65);
+    outline-offset: 2px;
+    border-radius: 8px;
+}
+
+/* --- Skip Link --- */
+.skip-link {
+    position: fixed;
+    top: -64px;
+    left: 16px;
+    z-index: 101;
+    padding: 12px 18px;
+    background: var(--ink-900);
+    color: white;
+    font-weight: 700;
+    font-size: 0.85rem;
+    border-radius: 9px;
+    transition: top 0.2s ease;
+    text-decoration: none;
+}
+.skip-link:focus-visible { top: 14px; }

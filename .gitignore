@@ -1,0 +1,33 @@
+# NEVER commit these — full Firebase project control
+scripts/serviceAccountKey.json
+**/serviceAccountKey*.json
+*-firebase-adminsdk-*.json
+*.pem
+*.p12
+
+# Node
+node_modules/
+package-lock.json
+
+# Secrets & local env
+.env
+functions/.env
+
+# Device credentials (copy device_secrets.example.h -> device_secrets.h)
+LilyGO TTGO T-SIM A7670G/device_secrets.h
+device_secrets.h
+
+# OS / IDE noise
+.DS_Store
+.idea/
+.vscode/
+
+# Local firmware build artifacts
+build/
+
+# Local tooling & Firebase caches
+.firebase/
+.claude/
+.mcp.json
+*.log
+LilyGO TTGO T-SIM A7670G/BRIANE.ino
